@@ -1,36 +1,7 @@
-FLOW_TYPE_LIST_ENG = [
-    "1 - Deposited on Exchanges",
-    "2 - Bought with fiat on the Exchange",
-    "3 - Obtained selling cryptocurrency",
-    "4 - Sold for fiat on the Exchange",
-    "5 - Spent to buy cryptocurrency",
-    "6 - Paid as fees to Exchanges",
-    "7 - Withdrawn from Exchanges"
-]
-
-FLOW_TYPE_LIST_ITA = [
-    "1 - Deposito su Exchange",
-    "2 - Acquisto con fiat su Exchange",
-    "3 - Ottenuto vendendo cryptocurrency",
-    "4 - Vendita per fiat su Exchange",
-    "5 - Spesa per acquisto cryptocurrency",
-    "6 - Pagamento di fee su Exchange",
-    "7 - Prelievo da Exchange"
-]
-
-DB_HEADER = [
-    "Exchange",
-    "Date",
-    "Currency",
-    "Price",
-    "ID",
-    "FlowType"
-]
-
 
 FIAT_LIST = ["EUR", "USD"]
 
-CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG"]
+CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC"]
 
 CRYPTO_FIAT_DICT = {"Crypto": CRYPTO_LIST,
                     "Fiat": FIAT_LIST,
@@ -61,7 +32,23 @@ TRT_DICT_TOT = {
 
 }
 
+BITSTAMP_CSV_HAEDER = ["Type", "Datetime", "Account",
+                       "Amount", "Value", "Rate", "Fee", "Sub Type"]
 
+BITSTAMP_MONTH = {
+    "01": ["Jan"],
+    "02": ["Feb"],
+    "03": ["Mar"],
+    "04": ["Apr"],
+    "05": ["May"],
+    "06": ["Jun"],
+    "07": ["Jul"],
+    "08": ["Aug"],
+    "09": ["Sep"],
+    "10": ["Oct"],
+    "11": ["Nov"],
+    "12": ["Dec"]
+}
 # DB general variables
 
 TRADE_TYPE = {
@@ -69,6 +56,37 @@ TRADE_TYPE = {
     "Other": ["1", "6", "7"]
 }
 
+FLOW_TYPE_LIST_ENG = [
+    "1 - Deposited on Exchanges",
+    "2 - Bought with fiat on the Exchange",
+    "3 - Obtained selling cryptocurrency",
+    "4 - Sold for fiat on the Exchange",
+    "5 - Spent to buy cryptocurrency",
+    "6 - Paid as fees to Exchanges",
+    "7 - Withdrawn from Exchanges"
+]
+
+FLOW_TYPE_LIST_ITA = [
+    "1 - Deposito su Exchange",
+    "2 - Acquisto con fiat su Exchange",
+    "3 - Ottenuto vendendo cryptocurrency",
+    "4 - Vendita per fiat su Exchange",
+    "5 - Spesa per acquisto cryptocurrency",
+    "6 - Pagamento di fee su Exchange",
+    "7 - Prelievo da Exchange"
+]
+
+DB_HEADER = [
+    "Exchange",
+    "Date",
+    "Currency",
+    "Price",
+    "ID",
+    "FlowType",
+    "FlowType_Num",
+    "TradeType",
+    "Trade_Num"
+]
 
 # REPORT VARIABLES
 

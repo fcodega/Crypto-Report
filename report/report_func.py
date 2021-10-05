@@ -122,9 +122,9 @@ def LIFO_definition(trans_df):
 
     dff = trans_df.copy()
 
-    dff["DateString"] = [x[:19] for x in dff["Date"]]
-    dff["Date"] = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S")
-                   for x in dff["DateString"]]
+    # dff["DateString"] = [x[:19] for x in dff["Date"]]
+    # dff["Date"] = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S")
+    #                for x in dff["DateString"]]
     dff.sort_values(by=['Date'], inplace=True, ascending=True)
 
     for index, row in dff.iterrows():
@@ -217,36 +217,15 @@ def LIFO_search_residual(tot_df, selled_crypto, selled_amount, bought_amount, se
     return tot_df
 
 
-# def LIFO_logic(trans_df):
+# ---- final result
 
-#     # find all fiat used for operation
-#     col_list = trans_df.columns
-#     fiat_op_list = list(set(FIAT_LIST).intersection(col_list))
-#     crypto_op_list = list(set(CRYPTO_LIST).intersection(col_list))
+def gains_and_losses_view(input_db):
 
-#     for fiat in fiat_op_list:
+    db = input_db.copy()
+    transaction_df = define_trans_df(db)
+    view_df = LIFO_definition(transaction_df)
 
-#         buy_crypto_df = trans_df.loc[trans_df[fiat] < 0]
-#         sell_crypto_df = trans_df.loc[trans_df[fiat] > 0]
-
-#         for index, row in sell_crypto_df.iterrows():
-
-#             sell_date = np.array(row["date"])
-#             sell_no_nan = row.dropna(axis=1)
-#             sell_no_nan_col = sell_no_nan.columns
-#             crypto_selled = list(
-#                 set(CRYPTO_LIST).intersection(sell_no_nan_col))[0]
-#             other_crypto = crypto_op_list.remove(crypto_selled)
-
-#             buy_crypto_spec = buy_crypto_df.drop(columns=other_crypto)
-
-#     return None
-
-
-# def LIFO_crypto_crypto():
-
-#     return None
-
+    return view_df
 
 # ##########################################
 
