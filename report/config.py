@@ -3,6 +3,17 @@ FIAT_LIST = ["EUR", "USD"]
 
 CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC"]
 
+CRYPTO_LIST_RES = [
+    "BTC_residual",
+    "ETH_residual",
+    "DOGE_residual",
+    "XRP_residual",
+    "DOG_residual",
+    "BCH_residual",
+    "BSV_residual",
+    "LTC_residual"
+]
+
 CRYPTO_FIAT_DICT = {"Crypto": CRYPTO_LIST,
                     "Fiat": FIAT_LIST,
                     }
@@ -110,3 +121,69 @@ DEPO_DF_HEADER = [
     "Statement"
 
 ]
+
+
+# EXCEL VARIABLES
+
+LIFO_VIEW_START = [4, 1]
+
+FORMAT_DICT = {
+
+    'header_gray': {'bg_color': '#999999',
+                    'font_color': '#FFFFFF',
+                    'font_size': 12,
+                    'align': 'center',
+                    'valign': 'vcenter',
+                    'bold': True,
+                    'top': 2,
+                    'bottom': 2},
+
+    'header_light_blue': {'bg_color': '#3DC6EC',
+                          'font_color': '#000000',
+                          'font_size': 12,
+                          'align': 'center',
+                          'valign': 'vcenter',
+                          'bold': True,
+                          'top': 2,
+                          'bottom': 2},
+
+    'neg_eur': {'bg_color': '#FFC7CE',
+                'font_color': '#9C0006',
+                'num_format': '#,##0.00'
+                },
+
+    'pos_eur': {'bg_color': '#C6EFCE',
+                'font_color': '#006100',
+                'num_format': '#,##0.00'
+                },
+
+    'neutral_gray': {'bg_color': '#E9E8E6'
+                     },
+
+    'lifo_word': {
+        'bold': True,
+        'font_color': '#FF5733',
+        'font_size': 14,
+    },
+
+    'dashed_border': {
+        'top': 3,
+        'bottom': 3
+
+    },
+    'no_border': {
+        'border': 0
+
+    },
+
+    'top_bottom': {
+        'top': 2,
+        'bottom': 2
+    },
+
+    'big_bold': {
+        'font_size': 12,
+        'bold': True,
+    }
+
+}

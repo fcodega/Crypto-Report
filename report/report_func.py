@@ -236,9 +236,9 @@ def define_dep_wit_df(client_db):
 
     db = client_db.copy()
 
-    db["DateString"] = [x[:19] for x in db["Date"]]
-    db["Date"] = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S")
-                  for x in db["DateString"]]
+    # db["DateString"] = [x[:19] for x in db["Date"]]
+    # db["Date"] = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S")
+    #               for x in db["DateString"]]
 
     sub_db_1 = db.loc[db.FlowType_Num == "1"]
     sub_db_2 = db.loc[db.FlowType_Num == "7"]
@@ -254,9 +254,28 @@ def define_dep_wit_df(client_db):
     df["Exchange"] = sub_db["Exchange"]
     df["Amount"] = sub_db["Price"]
 
+    df = df[DEPO_DF_HEADER]
+
     return df
 
 
 # ##########################################
 
 # ### FLOWS VIEW ------------
+
+def define_flows_view(client_total_db):
+
+    db = client_total_db.copy()
+
+    db["Year"] = [x.year for x in db["Date"]]
+
+    db = db.groupby(by=["Currency", "Year", "FlowType"]).sum()
+    db = db.reset_index(level=['Currency', 'Year', "FlowType"])
+
+    currency_list = list(np.array(db["Currency"].unique()))
+    year_list = list(np.array(db["Year"].unique()))
+
+    flow_pivot = db.pivot(
+        index=["Currency", "FlowType"], columns="Year", values="Price")
+
+    return flow_pivot, currency_list, year_list

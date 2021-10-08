@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import date, datetime
+from pathlib import Path
 
 from report.config import (BITSTAMP_CSV_HAEDER, BITSTAMP_MONTH, CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER,
                            TRT_DICT, TRT_DICT_TOT, TRADE_TYPE)
@@ -24,6 +25,51 @@ def define_trade_type(db_):
     db_["TradeType"] = [get_key(TRADE_TYPE, x) for x in db_["FlowType_Num"]]
 
     return db_
+
+
+def compile_total_db(**kwargs):
+    '''
+    each variable has to be named e.g. trt_df = file name
+    variable names (keys) for raw files are: trt_df, pro_df, bit_df, coin_df
+    and for hype is: hype_db
+
+    '''
+
+    input_list = []
+
+    for key, value in kwargs.items():
+
+        if key == "trt_df":
+            trt = pd.read_csv(Path("input", value))
+            trt = trt.fillna("0")
+            trt_db = trt_compile_db(trt)
+            input_list.append(trt_db)
+
+        elif key == "pro_df":
+            pro = pd.read_csv(Path("input", value))
+            pro_db = coinbasepro_compile_db(pro)
+            input_list.append(pro_db)
+
+        elif key == "bit_df":
+            bit = pd.read_csv(Path("input", value),
+                              sep=",", skiprows=1)
+            bit_db = bitstamp_compile_db(bit)
+            input_list.append(bit_db)
+
+        elif key == "coin_df":
+            coin = pd.read_csv(Path("input", value),
+                               sep=",", skiprows=1)
+            coin_db = coinbase_compile_db(coin)
+            input_list.append(coin_db)
+
+        elif key == "hype_db":
+            pass
+
+    total_db = pd.concat(input_list)
+    total_db.sort_values(by=['Date'], inplace=True, ascending=True)
+    total_db.reset_index(drop=True, inplace=True)
+
+    return total_db
 
 # -------
 # The Rock Trading
