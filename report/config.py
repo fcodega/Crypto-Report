@@ -37,6 +37,10 @@ TRT_DICT_TOT = {
     "Crypto-Fiat_sold_currency_to_fund": "3 - Obtained selling cryptocurrency",
     "Fiat-Crypto_acquired_currency_from_fund": "3 - Obtained selling cryptocurrency",
     "Fiat-Crypto_bought_currency_from_fund": "4 - Sold for fiat on the Exchange",
+    #
+    "Crypto-Fiat_return_lent_currency": "5 - Spent to buy cryptocurrency",
+    "Crypto-Fiat_rollover_commission": "6 - Paid as fees to Exchanges",
+    #
     "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposited on Exchanges",
     "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Paid as fees to Exchanges",
     "Deposits, withdrawals, fees, transfers_withdraw": "7 - Withdrawn from Exchanges"
@@ -59,6 +63,11 @@ BITSTAMP_MONTH = {
     "10": ["Oct"],
     "11": ["Nov"],
     "12": ["Dec"]
+}
+
+COINBASE_TO_FLOWTYPE = {
+    "1 - Deposito su Exchange": ["Received", "Deposit"],
+    "7 - Prelievo da Exchange": ["Sent", "Withdrawal"]
 }
 # DB general variables
 
@@ -184,6 +193,57 @@ FORMAT_DICT = {
     'big_bold': {
         'font_size': 12,
         'bold': True,
-    }
+        'top': 2
+    },
 
+    'top': {
+        'top': 2
+    },
+
+    'black_header': {
+        'bold': True,
+        'font_color': 'black',
+        'font_size': 26
+    },
+
+    'orange_header': {
+        'bg_color': '#E9E8E6',
+        'bold': True,
+        'font_color': '#FF5733',
+        'font_size': 14,
+    },
+
+    'number': {
+        'num_format': '#,##0.00',
+        'top': 3,
+        'bottom': 3,
+        'align': 'center'
+    },
+    'currency': {
+        'bold': True,
+        'top': 3,
+        'bottom': 3
+    },
+
+    'title_bottom': {
+        'bottom': 2,
+        'font_size': 14,
+        'bold': True
+    },
+
+    'only_bottom': {
+        'bottom': 2,
+    },
+
+    'only_number': {
+        'num_format': '#,##0.00',
+    },
+
+    'negative_number': {
+        'font_color': 'red'
+    },
+
+    'only_center': {
+        'align': 'center'
+    }
 }
