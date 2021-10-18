@@ -89,3 +89,12 @@ All the field have to contain a value; for the fields "Exchange", "Price" (as am
        - field "Trade_Num": "hype_fee_" + a number starting from 0 to N (0 is the oldest deposit)
        - field "Currency: with the currency in which the fee is paid
        - field "TradeType": "Other"
+
+The "FlowType" field may change depending on the chosen language, for the english values:
+ "1 - Deposited on Exchanges",
+ "2 - Bought with fiat on the Exchange",
+ "3 - Obtained selling cryptocurrency",
+ "4 - Sold for fiat on the Exchange",
+ "5 - Spent to buy other cryptocurrency",
+ "6 - Paid as fees to Exchanges",
+ "7 - Withdrawn from Exchanges"

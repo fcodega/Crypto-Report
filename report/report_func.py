@@ -23,7 +23,7 @@ def report_launch(client_name, output_name, lang, **kwargs):
 
     '''
 
-    tot_db = compile_total_db(**kwargs)
+    tot_db = compile_total_db(lang, **kwargs)
 
     # gains and losses
     g_view = gains_and_losses_view(tot_db)

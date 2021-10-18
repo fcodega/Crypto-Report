@@ -7,7 +7,7 @@ from tabula import read_pdf
 
 from report.config import (BITSTAMP_CSV_HAEDER, BITSTAMP_MONTH,
                            CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER,
-                           FLOW_TYPE_DICT, FLOW_TYPE_DICT_ITA, TRADE_TYPE,
+                           FLOW_TYPE_DICT, TRADE_TYPE,
                            TRT_DICT, TRT_DICT_TOT_ITA)
 
 # ----
@@ -31,7 +31,7 @@ def define_trade_type(db_):
     return db_
 
 
-def compile_total_db(**kwargs):
+def compile_total_db(lang, **kwargs):
     '''
     each variable has to be named e.g. trt_df = file name
     variable names (keys) for raw files are: trt_df, pro_df, bit_df, coin_df
@@ -56,7 +56,7 @@ def compile_total_db(**kwargs):
         elif key == "pro_df":
             try:
                 pro = pd.read_csv(Path("input", value))
-                pro_db = coinbasepro_compile_db(pro)
+                pro_db = coinbasepro_compile_db(pro, lang)
                 input_list.append(pro_db)
             except TypeError:
                 pass
@@ -65,7 +65,7 @@ def compile_total_db(**kwargs):
             try:
                 bit = pd.read_csv(Path("input", value),
                                   sep=",")
-                bit_db = bitstamp_compile_db(bit)
+                bit_db = bitstamp_compile_db(bit, lang)
                 input_list.append(bit_db)
             except TypeError:
                 pass
@@ -74,7 +74,7 @@ def compile_total_db(**kwargs):
             try:
                 coin = pd.read_csv(Path("input", value),
                                    sep='["]*,["]*', skiprows=7).replace('"', '', regex=True)
-                coin_db = coinbase_compile_db(coin)
+                coin_db = coinbase_compile_db(coin, lang)
                 input_list.append(coin_db)
             except TypeError:
                 pass
@@ -83,7 +83,7 @@ def compile_total_db(**kwargs):
             try:
                 raw_coin_pdf = read_pdf(Path("input", value), pages='all')
                 coin_pdf = coinbase_pdf_reading(raw_coin_pdf)
-                coin_pdf_db = coinbase_pdf_compile_db(coin_pdf)
+                coin_pdf_db = coinbase_pdf_compile_db(coin_pdf, lang)
                 input_list.append(coin_pdf_db)
             except TypeError:
                 pass
@@ -203,11 +203,11 @@ def trt_depo_with_trade_num(df):
 # Coinbase
 
 
-def coinbase_compile_db(input_df):
+def coinbase_compile_db(input_df, lang):
 
     df = input_df.copy()
 
-    db = coin_conversion_op(df)
+    db = coin_conversion_op(df, lang)
 
     db["DateString"] = [x[:19] for x in db["Date"]]
     db["Date"] = [datetime.strptime(x, "%Y-%m-%dT%H:%M:%S")
@@ -216,7 +216,7 @@ def coinbase_compile_db(input_df):
     return db
 
 
-def coin_conversion_op(input_df):
+def coin_conversion_op(input_df, lang):
 
     conv_op = input_df.loc[input_df["Transaction Type"] == "Convert"]
     conv_op.reset_index(drop=True, inplace=True)
@@ -229,16 +229,16 @@ def coin_conversion_op(input_df):
         float(x.split(" ")[4]) for x in bought["Notes"]]
     bought["Asset"] = [
         str(x.split(" ")[5]) for x in bought["Notes"]]
-    bought["FlowType"] = FLOW_TYPE_DICT_ITA.get("3")
+    bought["FlowType"] = FLOW_TYPE_DICT.get(lang).get("3")
 
     sold = conv_op.copy()
     sold["Quantity Transacted"] = sold["Quantity Transacted"]*(-1)
-    sold["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+    sold["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
 
     fee = conv_op.copy()
     fee["Quantity Transacted"] = fee["EUR Fees"]
     fee["Asset"] = "EUR"
-    fee["FlowType"] = FLOW_TYPE_DICT_ITA.get("6")
+    fee["FlowType"] = FLOW_TYPE_DICT.get(lang).get("6")
 
     conv_tot = bought.append([sold, fee])
     conv_tot["ID"] = conv_tot.index
@@ -258,19 +258,19 @@ def coin_conversion_op(input_df):
     return conv_db
 
 
-def coin_buy_op(input_df):
+def coin_buy_op(input_df, lang):
 
     buy_op = input_df.loc[input_df["Transacion Type"] == "Buy"]
     buy_op["ID_"] = buy_op.index
     buy_op["Trade_Num"] = ["Buy_" + str(x) for x in buy_op["ID_"]]
 
     bought = buy_op.copy()
-    bought["FlowType"] = FLOW_TYPE_DICT_ITA.get("2")
+    bought["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
 
     sold = buy_op.copy()
     sold["Quantity Transacted"] = sold["EUR Subtotal"]*(-1)
     sold["Asset"] = [str(x.split(" ")[5]) for x in sold["Notes"]]
-    sold["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+    sold["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
 
     buy_tot = bought.append(sold)
     buy_tot["ID"] = buy_tot.index
@@ -290,7 +290,7 @@ def coin_buy_op(input_df):
     return buy_db
 
 
-def coin_sell_op(input_df):
+def coin_sell_op(input_df, lang):
 
     sell_op = input_df.loc[input_df["Transacion Type"] == "Sell"]
     sell_op["ID_"] = sell_op.index
@@ -298,12 +298,12 @@ def coin_sell_op(input_df):
 
     sold = sell_op.copy()
     sold["Quantity Transacted"] = sold["Quantity Transacted"]*(-1)
-    sold["FlowType"] = FLOW_TYPE_DICT_ITA.get("4")
+    sold["FlowType"] = FLOW_TYPE_DICT.get(lang).get("4")
 
     bought = sell_op.copy()
     bought["Quantity Transacted"] = bought["EUR Subtotal"]
     bought["Asset"] = [str(x.split(" ")[5]) for x in bought["Notes"]]
-    bought["FlowType"] = FLOW_TYPE_DICT_ITA.get("3")
+    bought["FlowType"] = FLOW_TYPE_DICT.get(lang).get("3")
 
     sell_tot = bought.append(sold)
     sell_tot["ID"] = sell_tot.index
@@ -325,13 +325,13 @@ def coin_sell_op(input_df):
 
 # Coinbase-pro
 
-def coinbasepro_compile_db(input_df):
+def coinbasepro_compile_db(input_df, lang):
 
     df = input_df.copy()
-    depo = pro_depo_op(df)
-    w = pro_withdraw_op(df)
-    fee = pro_fee_op(df)
-    trade = pro_trade_op(df)
+    depo = pro_depo_op(df, lang)
+    w = pro_withdraw_op(df, lang)
+    fee = pro_fee_op(df, lang)
+    trade = pro_trade_op(df, lang)
 
     db = depo.append([w, fee, trade])
 
@@ -342,7 +342,7 @@ def coinbasepro_compile_db(input_df):
     return db
 
 
-def pro_depo_op(input_df):
+def pro_depo_op(input_df, lang):
 
     df = input_df.copy()
     depo_df = df.loc[df.type == "deposit"]
@@ -355,14 +355,14 @@ def pro_depo_op(input_df):
     depo_db["Price"] = depo_df["amount"]
     depo_db["ID"] = depo_df["ID"]
     depo_db["Trade_Num"] = ["pro_depo_" + str(x) for x in depo_db["ID"]]
-    depo_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("1")
+    depo_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("1")
     depo_db["FlowType_Num"] = "1"
     depo_db["TradeType"] = "Other"
 
     return depo_db
 
 
-def pro_withdraw_op(input_df):
+def pro_withdraw_op(input_df, lang):
 
     df = input_df.copy()
     w_df = df.loc[df.type == "withdrawal"]
@@ -375,14 +375,14 @@ def pro_withdraw_op(input_df):
     w_db["Price"] = w_df["amount"]
     w_db["ID"] = w_df["ID"]
     w_db["Trade_Num"] = ["pro_withdraw_" + str(x) for x in w_db["ID"]]
-    w_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("7")
+    w_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("7")
     w_db["FlowType_Num"] = "7"
     w_db["TradeType"] = "Other"
 
     return w_db
 
 
-def pro_fee_op(input_df):
+def pro_fee_op(input_df, lang):
 
     df = input_df.copy()
     fee_df = df.loc[df.type == "fee"]
@@ -395,20 +395,20 @@ def pro_fee_op(input_df):
     fee_db["Price"] = fee_df["amount"]
     fee_db["ID"] = fee_df["ID"]
     fee_db["Trade_Num"] = ["pro_fee" + str(x) for x in fee_df["trade id"]]
-    fee_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("6")
+    fee_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("6")
     fee_db["FlowType_Num"] = "6"
     fee_db["TradeType"] = "Other"
 
     return fee_db
 
 
-def pro_trade_op(input_df):
+def pro_trade_op(input_df, lang):
 
     df = input_df.copy()
     trade_df = df.loc[df.type == "match"]
     trade_df["ID"] = trade_df.index
 
-    trade_df = pro_trade_to_flowtype(trade_df)
+    trade_df = pro_trade_to_flowtype(trade_df, lang)
 
     trade_db = pd.DataFrame(columns=DB_HEADER)
     trade_db["Date"] = trade_df["time"]
@@ -425,7 +425,7 @@ def pro_trade_op(input_df):
     return trade_db
 
 
-def pro_trade_to_flowtype(input_df):
+def pro_trade_to_flowtype(input_df, lang):
 
     input_df["FlowType"] = ""
 
@@ -439,9 +439,9 @@ def pro_trade_to_flowtype(input_df):
 
             for index, row in trade_df.iterrows():
                 if row["amount"] < 0:
-                    row["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+                    row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
                 else:
-                    row["FlowType"] = FLOW_TYPE_DICT_ITA.get("3")
+                    row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("3")
 
                 trade_df.loc[trade_df["amount/balance unit"] ==
                              single_ccy, "FlowType"] = row["FlowType"]
@@ -452,14 +452,14 @@ def pro_trade_to_flowtype(input_df):
                 single_ccy = row["amount/balance unit"]
                 if single_ccy in CRYPTO_LIST:
                     if row["amount"] < 0:
-                        row["FlowType"] = FLOW_TYPE_DICT_ITA.get("4")
+                        row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("4")
                     else:
-                        row["FlowType"] = FLOW_TYPE_DICT_ITA.get("2")
+                        row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
                 else:
                     if row["amount"] < 0:
-                        row["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+                        row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
                     else:
-                        row["FlowType"] = FLOW_TYPE_DICT_ITA.get("3")
+                        row["FlowType"] = FLOW_TYPE_DICT.get(lang).get("3")
 
                 trade_df.loc[trade_df["amount/balance unit"] ==
                              single_ccy, "FlowType"] = row["FlowType"]
@@ -505,14 +505,14 @@ def bit_read_csv(pandas_read_csv):
     return input_df
 
 
-def bitstamp_compile_db(input_df):
+def bitstamp_compile_db(input_df, lang):
 
     df = input_df.copy()
 
     df = bit_read_csv(df)
-    bit_db_w = bit_withdraw_op(df)
-    bit_db_depo = bit_depo_op(df)
-    bit_db_trade = bit_mkt_op(df)
+    bit_db_w = bit_withdraw_op(df, lang)
+    bit_db_depo = bit_depo_op(df, lang)
+    bit_db_trade = bit_mkt_op(df, lang)
     bitstamp_db = bit_db_w.append([bit_db_depo, bit_db_trade])
 
     bitstamp_db["DateString"] = [x.strftime(
@@ -523,7 +523,7 @@ def bitstamp_compile_db(input_df):
     return bitstamp_db
 
 
-def bit_withdraw_op(input_df):
+def bit_withdraw_op(input_df, lang):
 
     df = input_df.copy()
     w_df = df.loc[df.Type == "Withdrawal"]
@@ -533,9 +533,9 @@ def bit_withdraw_op(input_df):
 
     fee_df = w_df.copy()
     fee_df["Amount"] = fee_df["Fee"]
-    fee_df["FlowType"] = FLOW_TYPE_DICT_ITA.get("6")
+    fee_df["FlowType"] = FLOW_TYPE_DICT.get(lang).get("6")
 
-    w_df["FlowType"] = FLOW_TYPE_DICT_ITA.get("7")
+    w_df["FlowType"] = FLOW_TYPE_DICT.get(lang).get("7")
     total_df = w_df.append(fee_df)
     total_df["ID"] = total_df.index
 
@@ -558,7 +558,7 @@ def bit_withdraw_op(input_df):
     return w_db
 
 
-def bit_depo_op(input_df):
+def bit_depo_op(input_df, lang):
 
     df = input_df.copy()
     depo_df = df.loc[df.Type == "Deposit"]
@@ -572,7 +572,7 @@ def bit_depo_op(input_df):
     depo_db["Price"] = [float(x.split(" ")[0]) for x in depo_df["Amount"]]
     depo_db["ID"] = depo_df["ID"]
     depo_db["Trade_Num"] = ["bit_depo_" + str(x) for x in depo_db["ID"]]
-    depo_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("1")
+    depo_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("1")
     depo_db["FlowType_Num"] = "1"
     depo_db["TradeType"] = "Other"
     depo_db["FlowType_Num"] = [str(x[0:1]) for x in depo_db["FlowType"]]
@@ -580,7 +580,7 @@ def bit_depo_op(input_df):
     return depo_db
 
 
-def bit_mkt_op(input_df):
+def bit_mkt_op(input_df, lang):
 
     df = input_df.copy()
     mkt_df = df.loc[df.Type == "Market"]
@@ -591,24 +591,24 @@ def bit_mkt_op(input_df):
     # fees part
     fee_df = mkt_df.copy()
     fee_df["Amount"] = fee_df["Fee"]
-    fee_df["FlowType"] = FLOW_TYPE_DICT_ITA.get("6")
+    fee_df["FlowType"] = FLOW_TYPE_DICT.get(lang).get("6")
 
     crypto_df_tot = mkt_df.copy()
     # buy leg
     crypto_buy = crypto_df_tot.loc[crypto_df_tot["Sub Type"] == "Buy"]
-    crypto_buy["FlowType"] = FLOW_TYPE_DICT_ITA.get("2")
+    crypto_buy["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
     fiat_sell = crypto_buy.copy()
     fiat_sell["Amount"] = crypto_buy["Value"]
-    fiat_sell["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+    fiat_sell["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
     crypto_buy_tot = crypto_buy.append(fiat_sell)
 
     # sell leg
     crypto_sell = crypto_df_tot.loc[crypto_df_tot["Sub Type"] == "Sell"]
-    crypto_sell["FlowType"] = FLOW_TYPE_DICT_ITA.get("4")
+    crypto_sell["FlowType"] = FLOW_TYPE_DICT.get(lang).get("4")
     crypto_sell["Amount"] = crypto_sell["Amount"]
     fiat_buy = crypto_sell.copy()
     fiat_buy["Amount"] = crypto_sell["Value"]
-    fiat_buy["FlowType"] = FLOW_TYPE_DICT_ITA.get("3")
+    fiat_buy["FlowType"] = FLOW_TYPE_DICT.get(lang).get("3")
     crypto_sell_tot = crypto_sell.append(fiat_buy)
 
     total_df = crypto_buy_tot.append([crypto_sell_tot, fee_df])
@@ -652,14 +652,14 @@ def hype_check_db(hype_db):
 # --------------
 # ## Coinbase PDF
 
-def coinbase_pdf_compile_db(input_df):
+def coinbase_pdf_compile_db(input_df, lang):
 
     df = input_df.copy()
 
     df_clean = coinbase_pdf_cleaning(df)
-    depo_db = coinbase_pdf_depo_op(df_clean)
-    with_db = coinbase_pdf_withdraw_op(df_clean)
-    air_db = coinbase_pdf_airdrop_op(df_clean)
+    depo_db = coinbase_pdf_depo_op(df_clean, lang)
+    with_db = coinbase_pdf_withdraw_op(df_clean, lang)
+    air_db = coinbase_pdf_airdrop_op(df_clean, lang)
 
     db = depo_db.append([with_db, air_db])
     db["Date"] = [datetime.strptime(x, "%m/%d/%Y")
@@ -749,7 +749,7 @@ def coinbase_pdf_cleaning(df):
     return dff
 
 
-def coinbase_pdf_airdrop_op(input_df):
+def coinbase_pdf_airdrop_op(input_df, lang):
 
     df = input_df.copy()
     df = df.drop(columns=["Transaction", "Currency_2", "Amount_2"])
@@ -760,11 +760,11 @@ def coinbase_pdf_airdrop_op(input_df):
     air_df["Trade_Num"] = ["coin_airdrop_" + str(x) for x in air_df["ID"]]
 
     buy_leg = air_df.copy()
-    buy_leg["FlowType"] = FLOW_TYPE_DICT_ITA.get("2")
+    buy_leg["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
     buy_leg["FlowType_Num"] = "2"
 
     sell_leg = air_df.copy()
-    sell_leg["FlowType"] = FLOW_TYPE_DICT_ITA.get("5")
+    sell_leg["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
     sell_leg["FlowType_Num"] = "5"
     sell_leg["Currency"] = "EUR"
     sell_leg["Price"] = 0
@@ -786,7 +786,7 @@ def coinbase_pdf_airdrop_op(input_df):
     return air_db
 
 
-def coinbase_pdf_depo_op(input_df):
+def coinbase_pdf_depo_op(input_df, lang):
 
     df = input_df.copy()
     df = df.drop(columns=["Transaction", "Currency_2", "Amount_2"])
@@ -802,14 +802,14 @@ def coinbase_pdf_depo_op(input_df):
     depo_db["Price"] = depo_df["Amount"]
     depo_db["ID"] = depo_df["ID"]
     depo_db["Trade_Num"] = ["coin_depo_" + str(x) for x in depo_db["ID"]]
-    depo_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("1")
+    depo_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("1")
     depo_db["FlowType_Num"] = "1"
     depo_db["TradeType"] = "Other"
 
     return depo_db
 
 
-def coinbase_pdf_withdraw_op(input_df):
+def coinbase_pdf_withdraw_op(input_df, lang):
 
     df = input_df.copy()
     df = df.drop(columns=["Transaction", "Currency_2", "Amount_2"])
@@ -825,7 +825,7 @@ def coinbase_pdf_withdraw_op(input_df):
     w_db["Price"] = w_df["Amount"]
     w_db["ID"] = w_df["ID"]
     w_db["Trade_Num"] = ["coin_withdraw_" + str(x) for x in w_db["ID"]]
-    w_db["FlowType"] = FLOW_TYPE_DICT_ITA.get("7")
+    w_db["FlowType"] = FLOW_TYPE_DICT.get(lang).get("7")
     w_db["FlowType_Num"] = "7"
     w_db["TradeType"] = "Other"
 

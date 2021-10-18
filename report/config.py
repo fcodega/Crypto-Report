@@ -45,13 +45,13 @@ FLOW_TYPE_DICT_ENG = {
 
 FLOW_TYPE_DICT = {
     "ita": {
-        "1": "1 - Deposited on Exchanges",
-        "2": "2 - Bought with fiat on the Exchange",
-        "3": "3 - Obtained selling cryptocurrency",
-        "4": "4 - Sold for fiat on the Exchange",
-        "5": "5 - Spent to buy other cryptocurrency",
-        "6": "6 - Paid as fees to Exchanges",
-        "7": "7 - Withdrawn from Exchanges"
+        "1": "1 - Deposito su Exchange",
+        "2": "2 - Acquisto con fiat su Exchange",
+        "3": "3 - Ottenuto vendendo cryptocurrency",
+        "4": "4 - Vendita per fiat su Exchange",
+        "5": "5 - Spesa per acquisto cryptocurrency",
+        "6": "6 - Pagamento di fee su Exchange",
+        "7": "7 - Prelievo da Exchange"
     },
     "eng": {
         "1": "1 - Deposited on Exchanges",
