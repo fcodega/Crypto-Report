@@ -83,7 +83,6 @@ def ECB_clean_series(raw_rate_df, start_period, end_period):
                                       "CURRENCY": "Currency"})
     # defining the array of date to be used
     date_complete = date_gen(start_period, end_period)
-    print(date_complete)
     merged = pd.merge(date_complete, rate_df, how="left", on="Date")
     merged = merged.fillna(method='ffill')
     merged = merged.fillna(method='bfill')

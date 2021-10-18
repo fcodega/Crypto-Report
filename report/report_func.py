@@ -6,7 +6,8 @@ from report.api import report_rates
 
 from report.config import DEPO_DF_HEADER, TRANSACTION_DF_HEADER, FIAT_LIST, CRYPTO_LIST
 from report.db_func import compile_total_db
-from report.excel_func import db_to_excel, report_to_excel
+from report.excel_func import report_to_excel
+from report.general_func import extend_pivot_header
 
 
 # ##### report launcher ########
@@ -38,41 +39,10 @@ def report_launch(client_name, output_name, **kwargs):
 
     report_to_excel(client_name, spec_path_tot, tot_db, g_view,
                     depo_view, flow_view, c_list, y_list, fiat_fund,
-                     fiat_inv, crypto_hold, trading)
+                    fiat_inv, crypto_hold, trading)
 
 
 # ### Summary View #####
-
-def complete_year_list(y_list):
-
-    min_y = min(y_list)
-    max_y = max(y_list)
-
-    complete_y = []
-
-    for i in range(min_y, max_y + 1):
-        complete_y.append(i)
-
-    return complete_y
-
-
-def extend_pivot_header(pivot_df, y_list):
-
-    incomplete_y = pivot_df.columns
-    complete_y = complete_year_list(y_list)
-
-    for el in incomplete_y:
-        complete_y.remove(el)
-
-    missing_y = complete_y
-
-    for y in missing_y:
-        pivot_df[y] = 0.0
-
-    pivot_df = pivot_df.reindex(sorted(pivot_df.columns), axis=1)
-
-    return pivot_df
-
 
 def summary_fiat(client_db, typology):
 
@@ -106,7 +76,7 @@ def summary_fiat(client_db, typology):
     fiat_pivot = grouped.pivot(
         index=["Currency"], columns="Year", values="Price")
 
-    fiat_pivot = extend_pivot_header(fiat_pivot, year_list)
+    fiat_pivot = extend_pivot_header(fiat_pivot, year_list, 0.0)
 
     return fiat_pivot
 
@@ -136,7 +106,7 @@ def summary_crypto(client_db):
     crypto_pivot = grouped.pivot(
         index=["Currency"], columns="Year", values="Price")
 
-    crypto_pivot = extend_pivot_header(crypto_pivot, year_list)
+    crypto_pivot = extend_pivot_header(crypto_pivot, year_list, 0.0)
     crypto_pivot = crypto_pivot.fillna(0.0)
 
     return crypto_pivot
@@ -158,7 +128,7 @@ def summary_trading(client_db, gain_loss_view):
     trading_pivot = grouped.pivot(
         index=["Currency"], columns="Year", values="Gain/Loss")
 
-    trading_pivot = extend_pivot_header(trading_pivot, year_list)
+    trading_pivot = extend_pivot_header(trading_pivot, year_list, 0.0)
     trading_pivot = trading_pivot.fillna(0.0)
 
     return trading_pivot
@@ -186,6 +156,8 @@ def define_trans_df(client_db, exc_rates_df):
 
     db["Date_str"] = [pd.to_datetime(str(x)) for x in db["Date"]]
     db["Date_str"] = [datetime.strftime(x, "%Y-%m-%d") for x in db["Date_str"]]
+    db["Original Currency"] = db["Currency"]
+    print(db)
     rates = exc_rates_df.drop(columns=["Currency", "Date"])
     merged_db = pd.merge(db, rates, how="left", on="Date_str")
     merged_db.loc[merged_db.Currency == "USD",
@@ -389,10 +361,8 @@ def gains_and_losses_view(input_db):
     db = input_db.copy()
     exc_rate = report_rates(input_db)
     transaction_df = define_trans_df(db, exc_rate)
-    print(transaction_df)
     view_df = LIFO_definition(transaction_df)
     view_df["Date"] = [pd.to_datetime(str(x)) for x in view_df["Date"]]
-    # db["Date"] = [datetime.strftime(x, "%Y-%m-%d") for x in db["Date_str"]]
 
     return view_df
 

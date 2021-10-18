@@ -23,6 +23,16 @@ TRT_DICT = {"paid_commission": "6 - Pagamento di fee su Exchange",
             "transfer_received": "2 - Acquisto con fiat su Exchange"
             }
 
+FLOW_TYPE_DICT_ITA = {
+    "1": "1 - Deposito su Exchange",
+    "2": "2 - Acquisto con fiat su Exchange",
+    "3": "3 - Ottenuto vendendo cryptocurrency",
+    "4": "4 - Vendita per fiat su Exchange",
+    "5": "5 - Spesa per acquisto cryptocurrency",
+    "6": "6 - Pagamento di fee su Exchange",
+    "7": "7 - Prelievo da Exchange"
+}
+
 TRT_DICT_TOT = {
     "Fiat-Crypto_paid_commission": "6 - Paid as fees to Exchanges",
     "Fiat-Crypto_released_currency_to_fund": "5 - Spent to buy cryptocurrency",
@@ -44,6 +54,30 @@ TRT_DICT_TOT = {
     "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposited on Exchanges",
     "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Paid as fees to Exchanges",
     "Deposits, withdrawals, fees, transfers_withdraw": "7 - Withdrawn from Exchanges"
+
+}
+
+TRT_DICT_TOT_ITA = {
+    "Fiat-Crypto_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
+    "Fiat-Crypto_released_currency_to_fund": FLOW_TYPE_DICT_ITA.get("5"),
+    "Fiat-Crypto_sold_currency_to_fund": FLOW_TYPE_DICT_ITA.get("2"),
+    "Crypto-Fiat_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
+    "Crypto-Fiat_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("2"),
+    "Crypto-Fiat_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("5"),
+    "Crypto-Crypto_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
+    "Crypto-Crypto_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("3"),
+    "Crypto-Crypto_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("5"),
+    "Crypto-Fiat_released_currency_to_fund": FLOW_TYPE_DICT_ITA.get("4"),
+    "Crypto-Fiat_sold_currency_to_fund": FLOW_TYPE_DICT_ITA.get("3"),
+    "Fiat-Crypto_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("3"),
+    "Fiat-Crypto_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("4"),
+    #
+    "Crypto-Fiat_return_lent_currency": FLOW_TYPE_DICT_ITA.get("5"),
+    "Crypto-Fiat_rollover_commission": FLOW_TYPE_DICT_ITA.get("6"),
+    #
+    "Deposits, withdrawals, fees, transfers_atm_payment": FLOW_TYPE_DICT_ITA.get("1"),
+    "Deposits, withdrawals, fees, transfers_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
+    "Deposits, withdrawals, fees, transfers_withdraw": FLOW_TYPE_DICT_ITA.get("7"),
 
 }
 
@@ -95,6 +129,7 @@ FLOW_TYPE_LIST_ITA = [
     "6 - Pagamento di fee su Exchange",
     "7 - Prelievo da Exchange"
 ]
+
 
 DB_HEADER = [
     "Exchange",
@@ -180,6 +215,22 @@ FORMAT_DICT = {
         'bottom': 3
 
     },
+
+    'dashed_plus': {
+        'top': 3,
+        'bottom': 3,
+        'bg_color': '#E9E8E6',
+
+    },
+
+    'dashed_plus_plus': {
+        'top': 3,
+        'bottom': 3,
+        'bg_color': '#E9E8E6',
+        'bold': True
+
+    },
+
     'no_border': {
         'border': 0
 
@@ -198,6 +249,10 @@ FORMAT_DICT = {
 
     'top': {
         'top': 2
+    },
+
+    'bottom': {
+        'bottom': 2
     },
 
     'black_header': {
