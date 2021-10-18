@@ -1,4 +1,4 @@
-# Crypto-Report
+# Crypto-Dossier
 
 Install the repository and its prerequisites into a
 python virtual environment; e.g. from the root folder:
