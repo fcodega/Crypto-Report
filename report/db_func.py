@@ -1,11 +1,14 @@
-import pandas as pd
-import numpy as np
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
 from tabula import read_pdf
 
-from report.config import (BITSTAMP_CSV_HAEDER, BITSTAMP_MONTH, CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER, FLOW_TYPE_DICT_ITA,
-                           TRT_DICT, TRT_DICT_TOT_ITA, TRADE_TYPE)
+from report.config import (BITSTAMP_CSV_HAEDER, BITSTAMP_MONTH,
+                           CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER,
+                           FLOW_TYPE_DICT, FLOW_TYPE_DICT_ITA, TRADE_TYPE,
+                           TRT_DICT, TRT_DICT_TOT_ITA)
 
 # ----
 # general

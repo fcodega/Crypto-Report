@@ -33,6 +33,38 @@ FLOW_TYPE_DICT_ITA = {
     "7": "7 - Prelievo da Exchange"
 }
 
+FLOW_TYPE_DICT_ENG = {
+    "1": "1 - Deposited on Exchanges",
+    "2": "2 - Bought with fiat on the Exchange",
+    "3": "3 - Obtained selling cryptocurrency",
+    "4": "4 - Sold for fiat on the Exchange",
+    "5": "5 - Spent to buy other cryptocurrency",
+    "6": "6 - Paid as fees to Exchanges",
+    "7": "7 - Withdrawn from Exchanges"
+}
+
+FLOW_TYPE_DICT = {
+    "ita": {
+        "1": "1 - Deposited on Exchanges",
+        "2": "2 - Bought with fiat on the Exchange",
+        "3": "3 - Obtained selling cryptocurrency",
+        "4": "4 - Sold for fiat on the Exchange",
+        "5": "5 - Spent to buy other cryptocurrency",
+        "6": "6 - Paid as fees to Exchanges",
+        "7": "7 - Withdrawn from Exchanges"
+    },
+    "eng": {
+        "1": "1 - Deposited on Exchanges",
+        "2": "2 - Bought with fiat on the Exchange",
+        "3": "3 - Obtained selling cryptocurrency",
+        "4": "4 - Sold for fiat on the Exchange",
+        "5": "5 - Spent to buy other cryptocurrency",
+        "6": "6 - Paid as fees to Exchanges",
+        "7": "7 - Withdrawn from Exchanges"
+    }
+
+}
+
 TRT_DICT_TOT = {
     "Fiat-Crypto_paid_commission": "6 - Paid as fees to Exchanges",
     "Fiat-Crypto_released_currency_to_fund": "5 - Spent to buy cryptocurrency",

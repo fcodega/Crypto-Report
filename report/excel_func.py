@@ -1,31 +1,41 @@
 from datetime import datetime
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from report.config import (CRYPTO_LIST, CRYPTO_LIST_RES, DB_HEADER,
                            DEPO_DF_HEADER, FIAT_LIST, FORMAT_DICT,
                            LIFO_VIEW_START)
 from report.general_func import complete_year_list, extend_pivot_header
 
-
 # ###### main function to create and write excel files ##########
 
 
-def report_to_excel(client_name, file_name, db, lifo_view, depo_withdraw_df, flow_df, ccy_list, y_list, fund_df, inv_df, crypto_df, trading_df):
+def report_to_excel(client_name, file_name, lang, db, lifo_view, depo_withdraw_df, flow_df, ccy_list, y_list, fund_df, inv_df, crypto_df, trading_df):
+
+    if lang == "ita":
+        sum_name = "Riassunto"
+        flow_name = "01. Overiview Flussi"
+        gl_name = "02. Trade, Guadagni e Perdite"
+        dw_name = "03. Depositi e Prelievi Fiat"
+    elif lang == "eng":
+        sum_name = "Summary"
+        flow_name = "01. Flows overview"
+        gl_name = "02.Trades, gains & losses"
+        dw_name = "03.Fiat deposits & withdrawals"
 
     with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
 
-        summary_view(client_name, writer, 'Summary',
+        summary_view(client_name, lang, writer, sum_name,
                      fund_df, inv_df, crypto_df, trading_df)
 
-        flows_to_excel(writer, '01. Flows overview', flow_df, ccy_list, y_list)
+        flows_to_excel(writer, lang, flow_name, flow_df, ccy_list, y_list)
 
-        gain_and_loss_to_exc(writer, '02.Trades, gains & losses',
+        gain_and_loss_to_exc(writer, lang, gl_name,
                              lifo_view, LIFO_VIEW_START[0], LIFO_VIEW_START[1])
 
         depo_withdraw_to_excel(
-            writer, '03.Fiat deposits & withdrawals', depo_withdraw_df)
+            writer, lang, dw_name, depo_withdraw_df)
 
         db_to_excel(writer, '99.Export', db)
 
@@ -34,7 +44,7 @@ def report_to_excel(client_name, file_name, db, lifo_view, depo_withdraw_df, flo
 
 # ------ Summary view
 
-def summary_view(client_name, writer_obj, sheet_name, funding_df, inv_df, crypto_df, trading_df):
+def summary_view(client_name, lang, writer_obj, sheet_name, funding_df, inv_df, crypto_df, trading_df):
 
     today = datetime.now().strftime("%d/%m/%Y")
     last_col = len(funding_df.columns) + 4
@@ -58,43 +68,70 @@ def summary_view(client_name, writer_obj, sheet_name, funding_df, inv_df, crypto
                            'x_scale': 0.3, 'y_scale': 0.3})
     worksheet.write(1, 1, "Crypto Dossier", format_big)
     worksheet.write(3, 1, client_name, format_orange)
-    worksheet.write(4, 1, "Status: Final for client review")
-    worksheet.write(5, 1, "Updated as of " + today)
-    worksheet.write(6, 1, "Data as of " + today)
+    if lang == "ita":
+        # --- Italian
+        worksheet.write(4, 1, "Status: Definitivo per la visione al cliente")
+        worksheet.write(5, 1, "Aggiornato al " + today)
+        worksheet.write(6, 1, "Prodotto il " + today)
+    elif lang == "eng":
+        # ---- English
+        worksheet.write(4, 1, "Status: Final for client review")
+        worksheet.write(5, 1, "Updated as of " + today)
+        worksheet.write(6, 1, "Data as of " + today)
     for i in range(2, last_col):
 
         worksheet.write(3, i, "", format_bg_grey)
         worksheet.write(9, i, "", f_b)
 
-    worksheet.write(9, 1, "Dossier overview",
-                    f_bottom)
+    if lang == "ita":
+        worksheet.write(9, 1, "Riassunto del Dossier",
+                        f_bottom)
+    elif lang == "eng":
+        worksheet.write(9, 1, "Dossier overview",
+                        f_bottom)
 
     row_start = 11
     row_padding = 3
 
     # funding
-    title = "Funding"
-    subtitle = "Fiat funds deposited on Exchanges, minus Fiat withdrawn from Exchanges"
+    if lang == "ita":
+        title = "Finanziamenti"
+        subtitle = "Fondi Fiat depositati sull'Exchange meno fondi Fiat prelevati dall'Exchange"
+    elif lang == "eng":
+        title = "Funding"
+        subtitle = "Fiat funds deposited on Exchanges, minus Fiat withdrawn from Exchanges"
     row_end = summary_compile(
         workbook, worksheet, title, subtitle, funding_df, row_start)
 
     # investment
-    title = "Investment"
-    subtitle = "Fiat funds spent to buy cryptocurrency, minus Fiat funds obtained by selling cryptocurrency"
+    if lang == "ita":
+        title = "Investimenti"
+        subtitle = "Fondi Fiat spesi per l'acquisto di crittovalute meno fondi Fiat ottenuti dalla vendita di crittovalute"
+    elif lang == "eng":
+        title = "Investment"
+        subtitle = "Fiat funds spent to buy cryptocurrency, minus Fiat funds obtained by selling cryptocurrency"
     new_start = row_end + row_padding
     row_end = summary_compile(
         workbook, worksheet, title, subtitle, inv_df, new_start)
 
     # crypto holding
-    title = "Crypto Holdings"
-    subtitle = "Crypto funds bought with fiat or crypto, minus crypto funds sold or spent as fees"
+    if lang == "ita":
+        title = "Possedimenti Crypto"
+        subtitle = "Crittovalute acquistate con fiat o altre crittovalute meno crittovalute vendute o spese come commissioni"
+    elif lang == "eng":
+        title = "Crypto Holdings"
+        subtitle = "Crypto funds bought with fiat or crypto, minus crypto funds sold or spent as fees"
     new_start = row_end + row_padding
     row_end = summary_compile(
         workbook, worksheet, title, subtitle, crypto_df, new_start)
 
     # trading gains and losses
-    title = "Trading gains & losses"
-    subtitle = "Net gains/losses based on LIFO, excluding cryto-crypto trades"
+    if lang == "ita":
+        title = "Attività di trading, guadagni e perdite"
+        subtitle = "Guadagni/Perdite nette in Fiat basate sul metodologia LIFO"
+    elif lang == "eng":
+        title = "Trading gains & losses"
+        subtitle = "Net gains/losses based on LIFO, excluding cryto-crypto trades"
     new_start = row_end + row_padding
     row_end = summary_compile(
         workbook, worksheet, title, subtitle, trading_df, new_start)
@@ -103,7 +140,6 @@ def summary_view(client_name, writer_obj, sheet_name, funding_df, inv_df, crypto
     worksheet.set_column("A:A", 2)
     worksheet.set_column("C:I", 15)
     worksheet.set_column("K:K", 15)
-    #worksheet.set_row_pixels(0, 150)
     worksheet.set_row(0, 70)
 
 
@@ -231,7 +267,7 @@ def gain_and_loss_reorder(df):
     return reordered_df
 
 
-def gain_and_loss_to_exc(writer_obj, sheet_name, df, start_row, start_col):
+def gain_and_loss_to_exc(writer_obj, lang, sheet_name, df, start_row, start_col):
 
     df = gain_and_loss_reorder(df)
     df["Date"] = [str(x) for x in df["Date"]]
@@ -251,8 +287,11 @@ def gain_and_loss_to_exc(writer_obj, sheet_name, df, start_row, start_col):
         FORMAT_DICT.get('lifo_word'))
     format_header = workbook.add_format(FORMAT_DICT.get('header_light_blue'))
     format_border = workbook.add_format(FORMAT_DICT.get('dashed_border'))
+    if lang == "eng":
+        title = "Transactions"
+    elif lang == "ita":
+        title = "Transazioni"
 
-    title = "Transactions"
     worksheet.write(2, 1, title, format_word)
 
     # header
@@ -300,7 +339,7 @@ def format_sheet_lifo(workbook, worksheet, start_row, last_row):
 
 # ------- Flows View
 
-def flows_to_excel(writer_obj, sheet_name, flow_df, currency_list, year_list):
+def flows_to_excel(writer_obj, lang, sheet_name, flow_df, currency_list, year_list):
 
     # workook definition and sheet creation
     workbook = writer_obj.book
@@ -310,7 +349,10 @@ def flows_to_excel(writer_obj, sheet_name, flow_df, currency_list, year_list):
     format_word = workbook.add_format(FORMAT_DICT.get('lifo_word'))
 
     worksheet.hide_gridlines(2)
-    worksheet.write(1, 1, "Flows", format_word)
+    if lang == "ita":
+        worksheet.write(1, 1, "Flussi", format_word)
+    elif lang == "eng":
+        worksheet.write(1, 1, "Flows", format_word)
 
     start_row = 3
     start_col = 1
@@ -480,7 +522,7 @@ def net_crypto_acq(sub_df, index_name):
 # Depo and withdrawal view
 
 
-def depo_withdraw_to_excel(writer_obj, sheet_name, df):
+def depo_withdraw_to_excel(writer_obj, lang, sheet_name, df):
 
     df["Date"] = [str(x) for x in df["Date"]]
     df = df.fillna("-")
@@ -496,9 +538,12 @@ def depo_withdraw_to_excel(writer_obj, sheet_name, df):
         FORMAT_DICT.get('lifo_word'))
     format_header = workbook.add_format(FORMAT_DICT.get('header_light_blue'))
     format_border = workbook.add_format(FORMAT_DICT.get('dashed_border'))
-
-    title = "Fiat deposits and withdrawals"
-    subtitle = "Fiat funds deposited/withdrawn from Exchanges. Statements attached when applicable."
+    if lang == "ita":
+        title = "Depositi e Prelievi Fiat"
+        subtitle = "Fondi Fiat depositati/prelevati da Exchange"
+    elif lang == "eng":
+        title = "Fiat deposits and withdrawals"
+        subtitle = "Fiat funds deposited/withdrawn from Exchanges. Statements attached when applicable."
     worksheet.write(2, 1, title, format_word)
     worksheet.write(3, 1, subtitle)
 
@@ -520,3 +565,27 @@ def depo_withdraw_to_excel(writer_obj, sheet_name, df):
     worksheet.set_column("E:E", 20)
     worksheet.set_column('D:D', 17)
     worksheet.set_column('K:K', 17)
+
+# --------
+# Glossario
+
+
+def glossary(writer_obj, lang, sheet_name):
+
+    workbook = writer_obj.book
+    worksheet = workbook.add_worksheet(sheet_name)
+
+    worksheet.hide_gridlines(2)
+
+    # format
+    format_word = workbook.add_format(
+        FORMAT_DICT.get('lifo_word'))
+    format_header = workbook.add_format(FORMAT_DICT.get('header_light_blue'))
+    format_border = workbook.add_format(FORMAT_DICT.get('dashed_border'))
+    if lang == "ita":
+        title = "Glossario"
+    elif lang == "eng":
+        title = "Glossary"
+    worksheet.write(2, 1, title, format_word)
+
+    return None

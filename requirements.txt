@@ -3,3 +3,5 @@ numpy
 xlsxwriter
 openpyxl
 requests
+tabula
+pdfkit

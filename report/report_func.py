@@ -1,18 +1,20 @@
-import pandas as pd
-import numpy as np
 from datetime import datetime
 from pathlib import Path
-from report.api import report_rates
 
-from report.config import DEPO_DF_HEADER, TRANSACTION_DF_HEADER, FIAT_LIST, CRYPTO_LIST
+import numpy as np
+import pandas as pd
+
+from report.api import report_rates
+from report.config import (CRYPTO_LIST, DEPO_DF_HEADER, FIAT_LIST,
+                           TRANSACTION_DF_HEADER)
 from report.db_func import compile_total_db
 from report.excel_func import report_to_excel
 from report.general_func import extend_pivot_header
 
-
 # ##### report launcher ########
 
-def report_launch(client_name, output_name, **kwargs):
+
+def report_launch(client_name, output_name, lang, **kwargs):
     '''
     ouput name variable is a string that has to finish with .xlsx
     each variable has to be named e.g. trt_df = file name
@@ -37,7 +39,7 @@ def report_launch(client_name, output_name, **kwargs):
 
     spec_path_tot = Path("output", output_name)
 
-    report_to_excel(client_name, spec_path_tot, tot_db, g_view,
+    report_to_excel(client_name, spec_path_tot, lang, tot_db, g_view,
                     depo_view, flow_view, c_list, y_list, fiat_fund,
                     fiat_inv, crypto_hold, trading)
 
