@@ -40,7 +40,9 @@ In order to generate a dossier follow the steps:
         - Coinbase: to perform the computation the code nneds the standard coinbase report in CSV format and
           the complete report in PDF format
         - Hype: this Exchange does not provide a report, the user has to manually insert the values in the specified template
-    
-2) In the report_launcher.py script assign the right name to each variable, otherwise write None
-3) In the report_launcher.py script add the client name and the client code
+          as specified below
+    1.1) How to insert manually the values for all the Exchanges without a report
+         
+2) Assign the right name to each variable corresponding to a specific file in the report_launcher.py script, otherwise write None
+3) Add the client name and the client code (if needed) in the report_launcher.py script
 4) Run the the report_launcher.py script: the output will be uploaded in the "output" folder
