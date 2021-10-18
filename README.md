@@ -46,25 +46,29 @@ In order to generate a dossier follow the steps:
 3) Add the client name and the client code (if needed) in the report_launcher.py script
 4) Run the the report_launcher.py script: the output will be uploaded in the "output" folder
 
-## How to insert manually the values for all the Exchanges without a report
+## How to manually insert the values for all the Exchanges without a report
 
 The code can manage a specifically structured file in XLSX format containing all the information in the proper way.
-all the operation can be divided into four main clusters:
+A XLSX template containing the columns structure and names can be found in the repository.
+All the field have to contain a value; for the fields "Exchange", "Price" (as amount), "Date"(dd/mm/yyyy format) and "ID" (from 0 to N as the rows) the values are rather obviuos, as for the remaining fields we can divide the operation into four main clusters:
 1) Deposit 
    - field "FlowType" : "1 - Deposito su Exchange"
    - field "FlowType_Num: "1"
    - field "Trade_Num": "hype_depo_" + a number starting from 0 to N (0 is the oldest deposit)
    - field "Currency: with the currency of the deposit operation
+   - field "TradeType": "Other"
 2) Withdrawal
    - field "FlowType" : "7 - Prelievo da Exchange"
    - field "FlowType_Num: "7"
    - field "Trade_Num": "hype_wit_" + a number starting from 0 to N (0 is the oldest withdrawal)
    - field "Currency: with the currency of the withdrawn operation
+   - field "TradeType": "Other"
 3) Fees (always related to other operations)
    - field "FlowType" : "6 - Pagamento di fee su Exchange"
    - field "FlowType_Num: "6"
    - field "Trade_Num": "hype_fee_" + a number starting from 0 to N (0 is the oldest deposit)
    - field "Currency: with the currency in which the fee is paid
+   - field "TradeType": "Other"
 4) Trade
     Each trade generates three different rows specifically:
     - buy operation
@@ -72,13 +76,16 @@ all the operation can be divided into four main clusters:
         - field "FlowType_Num": "2" or "3"
         - field "Trade_Num": "hype_trade_" + a number starting from 0 to N (0 is the oldest deposit)
         - field "Currency: with the currency of the buy leg
+        - field "TradeType": "Trade"
     - sell operation
         - field "FlowType" : "5 - Spesa per acquisto cryptocurrency" or "4 - Vendita per fiat su Exchange"
         - field "FlowType_Num": "5" or "4"
         - field "Trade_Num": "hype_trade_" + a number starting from 0 to N (0 is the oldest deposit)
         - field "Currency: with the currency of the sell leg
+        - field "TradeType": "Trade"
     - related fees
        - field "FlowType" : "6 - Pagamento di fee su Exchange"
        - field "FlowType_Num: "6"
        - field "Trade_Num": "hype_fee_" + a number starting from 0 to N (0 is the oldest deposit)
        - field "Currency: with the currency in which the fee is paid
+       - field "TradeType": "Other"
