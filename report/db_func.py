@@ -257,6 +257,7 @@ def coinbase_transaction_compile_db(input_df, lang):
     db["Date"] = [datetime.strptime(x, "%Y-%m-%dT%H:%M:%S")
                   for x in db["DateString"]]
 
+    db["Exchange"] = "Coinbase"
     # check_new_ccy(db, "Currency")
 
     return db
@@ -308,7 +309,7 @@ def coin_buy_op(input_df, lang):
 
     buy_op = input_df.loc[input_df["Transaction Type"] == "Buy"]
     buy_op["ID_"] = buy_op.index
-    buy_op["Trade_Num"] = ["Buy_" + str(x) for x in buy_op["ID_"]]
+    buy_op["Trade_Num"] = ["coin_buy_" + str(x) for x in buy_op["ID_"]]
 
     bought = buy_op.copy()
     bought["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
@@ -340,7 +341,7 @@ def coin_sell_op(input_df, lang):
 
     sell_op = input_df.loc[input_df["Transaction Type"] == "Sell"]
     sell_op["ID_"] = sell_op.index
-    sell_op["Trade_Num"] = ["Sell_" + str(x) for x in sell_op["ID_"]]
+    sell_op["Trade_Num"] = ["coin_sell_" + str(x) for x in sell_op["ID_"]]
 
     sold = sell_op.copy()
     sold["Quantity Transacted"] = sold["Quantity Transacted"]*(-1)
@@ -713,7 +714,7 @@ def coinbase_pdf_compile_db(input_df, lang):
     db = depo_db.append([with_db, air_db])
     db["Date"] = [datetime.strptime(x, "%m/%d/%Y")
                   for x in db["Date"]]
-
+    db["Exchange"] = "Coinbase"
     # check_new_ccy(db, "Currency")
 
     return db
