@@ -159,7 +159,6 @@ def define_trans_df(client_db, exc_rates_df):
     db["Date_str"] = [pd.to_datetime(str(x)) for x in db["Date"]]
     db["Date_str"] = [datetime.strftime(x, "%Y-%m-%d") for x in db["Date_str"]]
     db["Original Currency"] = db["Currency"]
-    print(db)
     rates = exc_rates_df.drop(columns=["Currency", "Date"])
     merged_db = pd.merge(db, rates, how="left", on="Date_str")
     merged_db.loc[merged_db.Currency == "USD",
@@ -239,6 +238,7 @@ def sell_bought_finder(df):
     no_nan = df.dropna()
     no_nan_col = no_nan.index
     no_nan_col = list(set(CRYPTO_LIST).intersection(no_nan_col))
+
     if len(no_nan_col) == 2:
 
         first_ccy = no_nan_col[0]

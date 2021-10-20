@@ -1,7 +1,7 @@
 
 FIAT_LIST = ["EUR", "USD"]
 
-CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC"]
+CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC", "ZRX"]
 
 CRYPTO_LIST_RES = [
     "BTC_residual",
@@ -18,29 +18,18 @@ CRYPTO_FIAT_DICT = {"Crypto": CRYPTO_LIST,
                     "Fiat": FIAT_LIST,
                     }
 
-TRT_DICT = {"paid_commission": "6 - Pagamento di fee su Exchange",
-            "transfer_sent": "5 - Spesa per acquisto cryptocurrency",
-            "transfer_received": "2 - Acquisto con fiat su Exchange"
-            }
+TRT_DICT = {
+    "ita": {
+        "paid_commission": "6 - Pagamento di fee su Exchange",
+        "transfer_sent": "5 - Spesa per acquisto cryptocurrency",
+        "transfer_received": "2 - Acquisto con fiat su Exchange"
+    },
+    "eng": {
+        "paid_commission": "6 - Paid as fees to Exchanges",
+        "transfer_sent": "5 - Spent to buy other cryptocurrency",
+        "transfer_received": "2 - Bought with fiat on the Exchange"
+    }
 
-FLOW_TYPE_DICT_ITA = {
-    "1": "1 - Deposito su Exchange",
-    "2": "2 - Acquisto con fiat su Exchange",
-    "3": "3 - Ottenuto vendendo cryptocurrency",
-    "4": "4 - Vendita per fiat su Exchange",
-    "5": "5 - Spesa per acquisto cryptocurrency",
-    "6": "6 - Pagamento di fee su Exchange",
-    "7": "7 - Prelievo da Exchange"
-}
-
-FLOW_TYPE_DICT_ENG = {
-    "1": "1 - Deposited on Exchanges",
-    "2": "2 - Bought with fiat on the Exchange",
-    "3": "3 - Obtained selling cryptocurrency",
-    "4": "4 - Sold for fiat on the Exchange",
-    "5": "5 - Spent to buy other cryptocurrency",
-    "6": "6 - Paid as fees to Exchanges",
-    "7": "7 - Withdrawn from Exchanges"
 }
 
 FLOW_TYPE_DICT = {
@@ -89,27 +78,51 @@ TRT_DICT_TOT = {
 
 }
 
-TRT_DICT_TOT_ITA = {
-    "Fiat-Crypto_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
-    "Fiat-Crypto_released_currency_to_fund": FLOW_TYPE_DICT_ITA.get("5"),
-    "Fiat-Crypto_sold_currency_to_fund": FLOW_TYPE_DICT_ITA.get("2"),
-    "Crypto-Fiat_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
-    "Crypto-Fiat_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("2"),
-    "Crypto-Fiat_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("5"),
-    "Crypto-Crypto_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
-    "Crypto-Crypto_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("3"),
-    "Crypto-Crypto_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("5"),
-    "Crypto-Fiat_released_currency_to_fund": FLOW_TYPE_DICT_ITA.get("4"),
-    "Crypto-Fiat_sold_currency_to_fund": FLOW_TYPE_DICT_ITA.get("3"),
-    "Fiat-Crypto_acquired_currency_from_fund": FLOW_TYPE_DICT_ITA.get("3"),
-    "Fiat-Crypto_bought_currency_from_fund": FLOW_TYPE_DICT_ITA.get("4"),
-    #
-    "Crypto-Fiat_return_lent_currency": FLOW_TYPE_DICT_ITA.get("5"),
-    "Crypto-Fiat_rollover_commission": FLOW_TYPE_DICT_ITA.get("6"),
-    #
-    "Deposits, withdrawals, fees, transfers_atm_payment": FLOW_TYPE_DICT_ITA.get("1"),
-    "Deposits, withdrawals, fees, transfers_paid_commission": FLOW_TYPE_DICT_ITA.get("6"),
-    "Deposits, withdrawals, fees, transfers_withdraw": FLOW_TYPE_DICT_ITA.get("7"),
+TRT_DICT_LANG = {
+    "ita": {
+        "Fiat-Crypto_paid_commission": "6 - Pagamento di fee su Exchange",
+        "Fiat-Crypto_released_currency_to_fund": "5 - Spesa per acquisto cryptocurrency",
+        "Fiat-Crypto_sold_currency_to_fund": "2 - Acquisto con fiat su Exchange",
+        "Crypto-Fiat_paid_commission": "6 - Pagamento di fee su Exchange",
+        "Crypto-Fiat_acquired_currency_from_fund": "2 - Acquisto con fiat su Exchange",
+        "Crypto-Fiat_bought_currency_from_fund": "5 - Spesa per acquisto cryptocurrency",
+        "Crypto-Crypto_paid_commission": "6 - Pagamento di fee su Exchange",
+        "Crypto-Crypto_acquired_currency_from_fund": "3 - Ottenuto vendendo cryptocurrency",
+        "Crypto-Crypto_bought_currency_from_fund": "5 - Spesa per acquisto cryptocurrency",
+        "Crypto-Fiat_released_currency_to_fund": "4 - Vendita per fiat su Exchange",
+        "Crypto-Fiat_sold_currency_to_fund": "3 - Ottenuto vendendo cryptocurrency",
+        "Fiat-Crypto_acquired_currency_from_fund": "3 - Ottenuto vendendo cryptocurrency",
+        "Fiat-Crypto_bought_currency_from_fund": "4 - Vendita per fiat su Exchange",
+        #
+        "Crypto-Fiat_return_lent_currency": "5 - Spesa per acquisto cryptocurrency",
+        "Crypto-Fiat_rollover_commission": "6 - Pagamento di fee su Exchange",
+        #
+        "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposito su Exchange",
+        "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Pagamento di fee su Exchange",
+        "Deposits, withdrawals, fees, transfers_withdraw": "7 - Prelievo da Exchange",
+    },
+    "eng": {
+        "Fiat-Crypto_paid_commission": "6 - Paid as fees to Exchanges",
+        "Fiat-Crypto_released_currency_to_fund": "5 - Spent to buy cryptocurrency",
+        "Fiat-Crypto_sold_currency_to_fund": "2 - Bought with fiat on the Exchange",
+        "Crypto-Fiat_paid_commission": "6 - Paid as fees to Exchanges",
+        "Crypto-Fiat_acquired_currency_from_fund": "2 - Bought with fiat on the Exchange",
+        "Crypto-Fiat_bought_currency_from_fund": "5 - Spent to buy cryptocurrency",
+        "Crypto-Crypto_paid_commission": "6 - Paid as fees to Exchanges",
+        "Crypto-Crypto_acquired_currency_from_fund": "3 - Obtained selling cryptocurrency",
+        "Crypto-Crypto_bought_currency_from_fund": "5 - Spent to buy other cryptocurrency",
+        "Crypto-Fiat_released_currency_to_fund": "4 - Sold for fiat on the Exchange",
+        "Crypto-Fiat_sold_currency_to_fund": "3 - Obtained selling cryptocurrency",
+        "Fiat-Crypto_acquired_currency_from_fund": "3 - Obtained selling cryptocurrency",
+        "Fiat-Crypto_bought_currency_from_fund": "4 - Sold for fiat on the Exchange",
+        #
+        "Crypto-Fiat_return_lent_currency": "5 - Spent to buy cryptocurrency",
+        "Crypto-Fiat_rollover_commission": "6 - Paid as fees to Exchanges",
+        #
+        "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposited on Exchanges",
+        "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Paid as fees to Exchanges",
+        "Deposits, withdrawals, fees, transfers_withdraw": "7 - Withdrawn from Exchanges",
+    }
 
 }
 
@@ -301,7 +314,7 @@ FORMAT_DICT = {
     },
 
     'number': {
-        'num_format': '#,##0.00',
+        'num_format': '#,##0.000000',  # FIXME check num format
         'top': 3,
         'bottom': 3,
         'align': 'center'

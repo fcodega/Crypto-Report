@@ -1,14 +1,19 @@
 from datetime import datetime
+from logging import exception
 from pathlib import Path
+import os
+import locale
+from locale import atof
+from typing import final
 
 import numpy as np
 import pandas as pd
 from tabula import read_pdf
 
 from report.config import (BITSTAMP_CSV_HAEDER, BITSTAMP_MONTH,
-                           CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER,
-                           FLOW_TYPE_DICT, TRADE_TYPE,
-                           TRT_DICT, TRT_DICT_TOT_ITA)
+                           CRYPTO_FIAT_DICT, CRYPTO_LIST, DB_HEADER, FIAT_LIST,
+                           FLOW_TYPE_DICT, TRADE_TYPE, TRT_DICT, TRT_DICT_LANG)
+from report.general_func import check_new_ccy
 
 # ----
 # general
@@ -48,7 +53,7 @@ def compile_total_db(lang, **kwargs):
             try:
                 trt = pd.read_csv(Path("input", value))
                 trt = trt.fillna("0")
-                trt_db = trt_compile_db(trt)
+                trt_db = trt_compile_db(trt, lang)
                 input_list.append(trt_db)
             except TypeError:
                 pass
@@ -70,19 +75,53 @@ def compile_total_db(lang, **kwargs):
             except TypeError:
                 pass
 
+        # coinbase transaction history report PDF
         elif key == "coin_df":
             try:
-                coin = pd.read_csv(Path("input", value),
-                                   sep='["]*,["]*', skiprows=7).replace('"', '', regex=True)
-                coin_db = coinbase_compile_db(coin, lang)
+                all_col = pd.read_csv(Path("input", value),
+                                      sep='["]*,["]*',
+                                      skiprows=7,
+                                      # engine='python',
+                                      #   usecols=['Timestamp', 'Transaction Type',
+                                      #            'Asset', 'Quantity Transacted', 'EUR Spot Price at Transaction',
+                                      #            'EUR Subtotal', 'EUR Total (inclusive of fees)', 'EUR Fees']
+                                      ).replace('"', '', regex=True)
+                print(all_col)
+                notes = pd.read_csv(Path("input", value),
+                                    sep='["]*,["]*',
+                                    skipinitialspace=True,
+                                    skiprows=7,
+                                    usecols=['Notes']
+                                    ).replace(',', '', regex=True)
+                all_col["Notes"] = notes["Notes"]
+                coin = all_col.copy()
+
+                print(notes)
+                coin_db = coinbase_transaction_compile_db(coin, lang)
                 input_list.append(coin_db)
             except TypeError:
                 pass
 
-        elif key == "coin_pdf":
+        # coinbase transaction history report PDF
+        elif key == "coin_transaction_pdf":
+            try:
+                box = [0, 0, 30 * 28.28, 30 * 28.28]
+                raw_trans_0 = read_pdf(Path("input", value), pages=1, area=box)
+                raw_trans_tot = read_pdf(
+                    Path("input", value), pages='all', area=box)
+                coin = coinbase_transaction_pdf_reading(
+                    raw_trans_0, raw_trans_tot)
+                print(coin)
+                coin_db = coinbase_transaction_compile_db(coin, lang)
+                input_list.append(coin_db)
+            except TypeError:
+                pass
+
+        # coinbase Account statement report PDF
+        elif key == "coin_account_pdf":
             try:
                 raw_coin_pdf = read_pdf(Path("input", value), pages='all')
-                coin_pdf = coinbase_pdf_reading(raw_coin_pdf)
+                coin_pdf = coinbase_account_pdf_reading(raw_coin_pdf)
                 coin_pdf_db = coinbase_pdf_compile_db(coin_pdf, lang)
                 input_list.append(coin_pdf_db)
             except TypeError:
@@ -112,7 +151,7 @@ def compile_total_db(lang, **kwargs):
 # The Rock Trading
 
 
-def trt_compile_db(input_df):
+def trt_compile_db(input_df, lang):
 
     dff = input_df.copy()
     dff["ID"] = dff.index
@@ -125,7 +164,7 @@ def trt_compile_db(input_df):
     trt_db["Currency"] = dff["Currency"]
     trt_db["Price"] = dff["Price"]
     trt_db["Trade_Num"] = ["trt_" + str(int(x)) for x in dff["Trade"]]
-    trt_db = trt_define_flowtype(dff, trt_db)
+    trt_db = trt_define_flowtype(dff, trt_db, lang)
     trt_db = define_trade_type(trt_db)
     trt_db = trt_depo_with_trade_num(trt_db)
 
@@ -136,15 +175,15 @@ def trt_compile_db(input_df):
     return trt_db
 
 
-def trt_define_flowtype(df, trt_db):
+def trt_define_flowtype(df, trt_db, lang):
 
     dff = df.copy()
     df_w_key = trt_key_constructor(dff)
 
     trt_db["FlowType"] = df_w_key["Key"].apply(
-        lambda x: TRT_DICT_TOT_ITA.get(x))
+        lambda x: TRT_DICT_LANG.get(lang).get(x))
 
-    trt_db = trt_fastlane_detect(df_w_key, trt_db)
+    trt_db = trt_fastlane_detect(df_w_key, trt_db, lang)
     try:
 
         trt_db["FlowType_Num"] = [str(x[0:1]) for x in trt_db["FlowType"]]
@@ -155,7 +194,7 @@ def trt_define_flowtype(df, trt_db):
     return trt_db
 
 
-def trt_fastlane_detect(df, trt_db):
+def trt_fastlane_detect(df, trt_db, lang):
 
     dff = df.copy()
 
@@ -168,7 +207,7 @@ def trt_fastlane_detect(df, trt_db):
             row_date = row["Date"]
             op_rows = dff.loc[dff.Date == row_date]
             op_rows["FlowType"] = op_rows["Type"].apply(
-                lambda x: TRT_DICT.get(x))
+                lambda x: TRT_DICT.get(lang).get(x))
             trt_db.loc[trt_db.Date == row_date,
                        "FlowType"] = op_rows["FlowType"]
             trt_db.loc[trt_db.Date == row_date,
@@ -200,18 +239,25 @@ def trt_depo_with_trade_num(df):
 
     return dff
 
-# Coinbase
+# --------------------
+# Coinbase CSV Report
+# --------------------
 
 
-def coinbase_compile_db(input_df, lang):
+def coinbase_transaction_compile_db(input_df, lang):
 
     df = input_df.copy()
 
-    db = coin_conversion_op(df, lang)
+    conv = coin_conversion_op(df, lang)
+    buy = coin_buy_op(df, lang)
+    sell = coin_sell_op(df, lang)
+    db = conv.append([buy, sell])
 
     db["DateString"] = [x[:19] for x in db["Date"]]
     db["Date"] = [datetime.strptime(x, "%Y-%m-%dT%H:%M:%S")
                   for x in db["DateString"]]
+
+    # check_new_ccy(db, "Currency")
 
     return db
 
@@ -260,7 +306,7 @@ def coin_conversion_op(input_df, lang):
 
 def coin_buy_op(input_df, lang):
 
-    buy_op = input_df.loc[input_df["Transacion Type"] == "Buy"]
+    buy_op = input_df.loc[input_df["Transaction Type"] == "Buy"]
     buy_op["ID_"] = buy_op.index
     buy_op["Trade_Num"] = ["Buy_" + str(x) for x in buy_op["ID_"]]
 
@@ -292,7 +338,7 @@ def coin_buy_op(input_df, lang):
 
 def coin_sell_op(input_df, lang):
 
-    sell_op = input_df.loc[input_df["Transacion Type"] == "Sell"]
+    sell_op = input_df.loc[input_df["Transaction Type"] == "Sell"]
     sell_op["ID_"] = sell_op.index
     sell_op["Trade_Num"] = ["Sell_" + str(x) for x in sell_op["ID_"]]
 
@@ -322,8 +368,10 @@ def coin_sell_op(input_df, lang):
 
     return sell_db
 
+# ---------------------
+#  ----- Coinbase-pro
+# ---------------------
 
-# Coinbase-pro
 
 def coinbasepro_compile_db(input_df, lang):
 
@@ -651,6 +699,7 @@ def hype_check_db(hype_db):
 
 # --------------
 # ## Coinbase PDF
+# --------------
 
 def coinbase_pdf_compile_db(input_df, lang):
 
@@ -665,22 +714,25 @@ def coinbase_pdf_compile_db(input_df, lang):
     db["Date"] = [datetime.strptime(x, "%m/%d/%Y")
                   for x in db["Date"]]
 
+    # check_new_ccy(db, "Currency")
+
     return db
 
 
-def coinbase_pdf_reading(raw_df):
+def coinbase_account_pdf_reading(raw_df):
 
     df_raw = raw_df.copy()
 
     header_list = ["Date", "Account",
                    "Transaction", "Amount",
                    "Amount(USD)", "Balance"]
-
+    print(len(df_raw))
     df = pd.DataFrame(columns=header_list)
     for i in range(0, len(df_raw)):
         i_part = df_raw[i]
         clean_df = i_part.replace('\r', ' ', regex=True)
-        clean_df = clean_df.rename(columns={'Amount\r(USD)': "Amount(USD)"})
+        clean_df = clean_df.rename(columns={'Amount\r(USD)': "Amount(USD)",
+                                            'Amount (USD)': "Amount(USD)"})
         if list(clean_df.columns) == header_list:
             df = df.append(clean_df)
 
@@ -706,24 +758,39 @@ def coinbase_pdf_cleaning(df):
     for index, row in dff.iterrows():
 
         row_id = row["ID"]
-        if row["Transaction"].split(" ")[1] == "sent":
-            row["Type"] = "Sent"
-        elif row["Transaction"].split(" ")[1] == "received":
-            if row["Transaction"].split(" ")[
-                    len(row["Transaction"].split(" ")) - 1] == "Coinbase":
-                row["Type"] = "Airdrop"
-            else:
-                row["Type"] = "Received"
-        elif row["Transaction"].split(" ")[1] == "deposited":
-            row["Type"] = "Deposit"
-        elif row["Transaction"].split(" ")[1] == "transferred":
-            row["Type"] = "Transfer"
-        elif row["Transaction"].split(" ")[1] == "purchased":
-            row["Type"] = "Trade"
-        elif row["Transaction"].split(" ")[1] == "sold":
-            row["Type"] = "Trade"
-        elif row["Transaction"].split(" ")[3] == "withdrawal":
-            row["Type"] = "Withdrawal"
+        try:
+            if row["Transaction"].split(" ")[1] == "sent":
+                row["Type"] = "Sent"
+            elif row["Transaction"].split(" ")[1] == "received":
+                if row["Transaction"].split(" ")[
+                        len(row["Transaction"].split(" ")) - 1] == "Coinbase":
+                    row["Type"] = "Airdrop"
+                elif row["Transaction"].split(" ")[
+                        len(row["Transaction"].split(" ")) - 1] == "Referral":
+                    print("referral found")
+                    row["Type"] = "Airdrop"
+                elif ((row["Transaction"].split(" ")[3] == "Cash") & (row["Date"] == "12/14/2017")):
+                    print("BCH hard fork found")
+                    row["Type"] = "Airdrop"
+                else:
+                    row["Type"] = "Received"
+            elif row["Transaction"].split(" ")[1] == "deposited":
+                row["Type"] = "Deposit"
+            elif row["Transaction"].split(" ")[1] == "transferred":
+                row["Type"] = "Transfer"
+            elif row["Transaction"].split(" ")[1] == "purchased":
+                row["Type"] = "Trade"
+            elif row["Transaction"].split(" ")[1] == "sold":
+                row["Type"] = "Trade"
+            elif row["Transaction"].split(" ")[1] == "withdrew":
+                row["Type"] = "Withdrawal"
+            # this one has to be the last
+            elif row["Transaction"].split(" ")[3] == "withdrawal":
+                row["Type"] = "Withdrawal"
+        except IndexError:
+            key = row["Transaction"]
+            errstr = "New 'Transaction' on Coinbase PDF input file: '" + key + "'"
+            raise KeyError(errstr)
 
         row["Amount_"] = row["Amount"].split(" ")[0]
         row["Currency"] = row["Amount"].split(" ")[1]
@@ -830,3 +897,157 @@ def coinbase_pdf_withdraw_op(input_df, lang):
     w_db["TradeType"] = "Other"
 
     return w_db
+
+
+# def coinbase_pdf_trade_op(input_df, lang):
+
+#     df = input_df.copy()
+#     df = df.drop(columns=["Transaction", "Currency_2", "Amount_2"])
+
+#     air_df = df.loc[df.Type == "Trade"]
+#     air_df.reset_index(drop=True, inplace=True)
+#     air_df["ID"] = air_df.index
+#     air_df["Trade_Num"] = ["coin_airdrop_" + str(x) for x in air_df["ID"]]
+
+#     buy_leg = air_df.copy()
+#     buy_leg["FlowType"] = FLOW_TYPE_DICT.get(lang).get("2")
+#     buy_leg["FlowType_Num"] = "2"
+
+#     sell_leg = air_df.copy()
+#     sell_leg["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
+#     sell_leg["FlowType_Num"] = "5"
+#     sell_leg["Currency"] = "EUR"
+#     sell_leg["Price"] = 0
+
+#     air_tot = buy_leg.append(sell_leg)
+#     air_tot.reset_index(drop=True, inplace=True)
+
+#     air_db = pd.DataFrame(columns=DB_HEADER)
+#     air_db["Date"] = air_tot["Date"]
+#     air_db["Exchange"] = "Coinbase"
+#     air_db["Currency"] = air_tot["Currency"]
+#     air_db["Price"] = air_tot["Amount"]
+#     air_db["ID"] = air_tot.index
+#     air_db["FlowType_Num"] = air_tot["FlowType_Num"]
+#     air_db["FlowType"] = air_tot["FlowType"]
+#     air_db["Trade_Num"] = air_tot["Trade_Num"]
+#     air_db["TradeType"] = "Trade"
+
+#     return trade_db
+
+# -----------------------------
+# coinbase transaction history report PDF
+# --------------------------------
+def coinbase_transaction_pdf_reading(raw_df_first_page, raw_df_all):
+
+    df_raw = raw_df_first_page.copy()
+    df_raw_all = raw_df_all.copy()
+
+    for i in range(0, len(df_raw)):
+        i_part = df_raw[i]
+        part_shape = i_part.shape
+
+        i_part = i_part.tail(part_shape[0] - 7)
+        i_part = i_part.drop(i_part.columns[part_shape[1] - 1], axis=1)
+        i_part = i_part.drop(i_part.columns[3], axis=1)
+        i_part.columns = range(i_part.shape[1])
+        i_part.reset_index(inplace=True, drop=True)
+        only_na = i_part[i_part.isnull().any(axis=1)]
+        only_na = only_na.fillna("")
+        for index, row in only_na.iterrows():
+            if row[1] == "":
+                split_row = i_part.iloc[index - 1, 0].split(" ")
+                date_part = str(np.array(row.loc[[0]])[0])
+                note_part = str(np.array(row.loc[[len(row) - 1]])[0])
+                substitute = split_row[0] + \
+                    date_part + " " + split_row[1] + " " + split_row[2]
+                i_part.iloc[index - 1, 0] = substitute
+                i_part.iloc[index - 1,
+                            len(row) - 1] = i_part.iloc[index - 1, len(row) - 1] + " " + note_part
+            else:
+                i_part.iloc[index, 2] = "0 € 0 €"
+
+        i_part = i_part.dropna()
+
+        dff_0 = i_part[0].str.split(" ", 2, expand=True).rename(
+            columns={0: 'Timestamp', 1: 'Transaction Type', 2: 'Asset'})
+        dff_1 = i_part[1].str.split(" ", 1, expand=True).rename(
+            columns={0: 'Quantity Transacted', 1: 'EUR Spot Price at Transaction'})
+        dff_2 = i_part[2].str.split(" ", 4, expand=True).rename(
+            columns={0: 'Subtotal', 2: 'Total(inclusive of fees)'})
+        dff_2["Subtotal"] = [x + " €" for x in dff_2["Subtotal"]]
+        dff_2["Total(inclusive of fees)"] = [
+            x + " €" for x in dff_2["Total(inclusive of fees)"]]
+        dff_2 = dff_2[['Subtotal', 'Total(inclusive of fees)']]
+        dff_3 = i_part[3]
+        total_first = pd.concat([dff_0, dff_1, dff_2, dff_3],
+                                axis=1, ignore_index=True)
+        final_df = total_first
+
+    for j in range(1, len(df_raw_all)):
+        j_part = df_raw_all[j]
+        part_shape = j_part.shape
+        j_part = j_part.tail(part_shape[0] - 2)
+        j_part = j_part.drop(j_part.columns[6], axis=1)
+        j_part.columns = range(j_part.shape[1])
+        j_part.reset_index(inplace=True, drop=True)
+        only_na = j_part[j_part.isnull().any(axis=1)]
+        only_na = only_na.fillna("")
+
+        for index, row in only_na.iterrows():
+            if row[1] == "":
+
+                date_part = str(np.array(row.loc[[0]])[0])
+                note_part = str(np.array(row.loc[[len(row) - 1]])[0])
+                j_part.iloc[index - 1,
+                            0] = j_part.iloc[index - 1, 0] + date_part
+                j_part.iloc[index - 1,
+                            len(row) - 1] = j_part.iloc[index - 1, len(row) - 1] + " " + note_part
+            else:
+                j_part.iloc[index, 3] = j_part.iloc[index, 3] + " 0 €"
+                j_part.iloc[index, 4] = "0 €"
+
+        j_part = j_part.dropna()
+
+        dff_0 = j_part[0]
+        dff_1 = j_part[1]
+        dff_2 = j_part[2].str.split(" ", 1, expand=True)
+        dff_3 = j_part[3].str.split(" ", 1, expand=True)
+        dff_4 = j_part[4]
+        dff_5 = j_part[5]
+        total_all = pd.concat([dff_0, dff_1, dff_2, dff_3,
+                              dff_4, dff_5], axis=1, ignore_index=True)
+        print(total_all)
+        final_df = final_df.append(total_all)
+        print(final_df)
+    final_df = final_df.rename(columns={
+        0: 'Timestamp',
+        1: 'Transaction Type',
+        2: 'Asset',
+        3: 'Quantity Transacted',
+        4: "EUR Spot Price at Transaction",
+        5: "EUR Subtotal",
+        6: "EUR Total(inclusive of fees)",
+        7: "Notes"
+    })
+    final_df.reset_index(drop=True, inplace=True)
+    for index, row in final_df.iterrows():
+        string_sub = row["EUR Subtotal"].split(" ")[0].replace('.', '')
+        string_tot = row["EUR Total(inclusive of fees)"].split(" ")[0].replace(
+            '.', '')
+        note = row["Notes"].replace(',', '.').replace(' €', '')
+        final_df.loc[final_df.index == index, "EUR Subtotal"] = string_sub
+        final_df.loc[final_df.index == index,
+                     "EUR Total(inclusive of fees)"] = string_tot
+        final_df.loc[final_df.index == index, "Notes"] = note
+
+    final_df["EUR Subtotal"] = final_df['EUR Subtotal'].str.replace(
+        ',', '.').astype(float)
+    final_df["EUR Total(inclusive of fees)"] = final_df['EUR Total(inclusive of fees)'].str.replace(
+        ',', '.').astype(float)
+    final_df["EUR Fees"] = final_df["EUR Total(inclusive of fees)"] - \
+        final_df["EUR Subtotal"]
+    final_df["Quantity Transacted"] = [
+        float(x) for x in final_df["Quantity Transacted"]]
+
+    return final_df

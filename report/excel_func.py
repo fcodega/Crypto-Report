@@ -217,7 +217,11 @@ def summary_compile(workbook, worksheet, title, subtitle, df, row_start):
 
 def db_to_excel(writer_obj, sheet_name, db):
 
-    db = db.drop(columns=["DateString", "ID"])
+    db = db.drop(columns=["ID"])
+    try:
+        db = db.drop(columns=["DateString"])
+    except KeyError:
+        pass
     db["Date"] = [str(x) for x in db["Date"]]
     db["Price"] = [float(x) for x in db["Price"]]
     db = db.fillna("-")
