@@ -101,6 +101,8 @@ TRT_DICT_LANG = {
         "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposito su Exchange",
         "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Pagamento di fee su Exchange",
         "Deposits, withdrawals, fees, transfers_withdraw": "7 - Prelievo da Exchange",
+        "Deposits, withdrawals, fees, transfers_transfer_sent": "7 - Prelievo da Exchange",
+        "Deposits, withdrawals, fees, transfers_transfer_received": "1 - Deposito su Exchange"
     },
     "eng": {
         "Fiat-Crypto_paid_commission": "6 - Paid as fees to Exchanges",
@@ -123,6 +125,8 @@ TRT_DICT_LANG = {
         "Deposits, withdrawals, fees, transfers_atm_payment": "1 - Deposited on Exchanges",
         "Deposits, withdrawals, fees, transfers_paid_commission": "6 - Paid as fees to Exchanges",
         "Deposits, withdrawals, fees, transfers_withdraw": "7 - Withdrawn from Exchanges",
+        "Deposits, withdrawals, fees, transfers_transfer_sent": "7 - Withdrawn from Exchanges",
+        "Deposits, withdrawals, fees, transfers_transfer_received": "1 - Deposited on Exchanges"
     }
 
 }

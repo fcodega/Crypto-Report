@@ -184,8 +184,8 @@ def trt_define_flowtype(df, trt_db, lang):
         lambda x: TRT_DICT_LANG.get(lang).get(x))
 
     trt_db = trt_fastlane_detect(df_w_key, trt_db, lang)
-    try:
 
+    try:
         trt_db["FlowType_Num"] = [str(x[0:1]) for x in trt_db["FlowType"]]
     except TypeError:
         errstr = "New 'Type' on The Rock Trading input file"
@@ -950,7 +950,26 @@ def coinbase_transaction_pdf_reading(raw_df_first_page, raw_df_all):
         i_part = i_part.tail(part_shape[0] - 7)
         i_part = i_part.drop(i_part.columns[part_shape[1] - 1], axis=1)
         i_part = i_part.drop(i_part.columns[3], axis=1)
+
         i_part.columns = range(i_part.shape[1])
+        i_part.reset_index(inplace=True, drop=True)
+        for index, row in i_part.iterrows():
+            try:
+                splitted_0 = row[0].split(" ")
+                if len(splitted_0) == 3:
+                    pass
+                elif len(splitted_0) == 2:
+                    splitted_1 = row[1].split(" ")
+                    new_0 = splitted_0[0] + " " + \
+                        splitted_0[1] + " " + splitted_1[0]
+                    new_1 = splitted_1[1] + " " + splitted_1[1]
+                    i_part.iloc[index, 0] = new_0
+                    i_part.iloc[index, 1] = new_1
+                else:
+                    print(len(splitted_0))
+            except AttributeError:
+                pass
+
         i_part.reset_index(inplace=True, drop=True)
         only_na = i_part[i_part.isnull().any(axis=1)]
         only_na = only_na.fillna("")
