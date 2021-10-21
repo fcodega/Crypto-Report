@@ -1,7 +1,8 @@
 
 FIAT_LIST = ["EUR", "USD"]
 
-CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC", "ZRX"]
+CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC", "ZRX",
+               "BAL", "COMP", "XLM", "NU", "GRT", "MATIC", "FORTH", "AMP", "BOND", "RLY", "CLV"]
 
 CRYPTO_LIST_RES = [
     "BTC_residual",

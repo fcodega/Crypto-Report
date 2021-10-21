@@ -698,9 +698,9 @@ def hype_check_db(hype_db):
     return hype_db
 
 
-# --------------
-# ## Coinbase PDF
-# --------------
+# --------------------------------------
+# ## Coinbase Account statement Report PDF
+# --------------------------------------
 
 def coinbase_pdf_compile_db(input_df, lang):
 
@@ -727,7 +727,6 @@ def coinbase_account_pdf_reading(raw_df):
     header_list = ["Date", "Account",
                    "Transaction", "Amount",
                    "Amount(USD)", "Balance"]
-    print(len(df_raw))
     df = pd.DataFrame(columns=header_list)
     for i in range(0, len(df_raw)):
         i_part = df_raw[i]
@@ -785,7 +784,7 @@ def coinbase_pdf_cleaning(df):
                 row["Type"] = "Trade"
             elif row["Transaction"].split(" ")[1] == "withdrew":
                 row["Type"] = "Withdrawal"
-            # this one has to be the last
+            # this one has to be the last #
             elif row["Transaction"].split(" ")[3] == "withdrawal":
                 row["Type"] = "Withdrawal"
         except IndexError:
@@ -835,11 +834,11 @@ def coinbase_pdf_airdrop_op(input_df, lang):
     sell_leg["FlowType"] = FLOW_TYPE_DICT.get(lang).get("5")
     sell_leg["FlowType_Num"] = "5"
     sell_leg["Currency"] = "EUR"
-    sell_leg["Price"] = 0
-
+    sell_leg["Amount"] = 0.00
+    print(sell_leg)
     air_tot = buy_leg.append(sell_leg)
     air_tot.reset_index(drop=True, inplace=True)
-
+    print(air_tot)
     air_db = pd.DataFrame(columns=DB_HEADER)
     air_db["Date"] = air_tot["Date"]
     air_db["Exchange"] = "Coinbase"

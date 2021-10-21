@@ -15,14 +15,16 @@ def report_to_excel(client_name, file_name, lang, db, lifo_view, depo_withdraw_d
 
     if lang == "ita":
         sum_name = "Riassunto"
-        flow_name = "01. Overiview Flussi"
+        flow_name = "01. Overview Flussi"
         gl_name = "02. Trade, Guadagni e Perdite"
         dw_name = "03. Depositi e Prelievi Fiat"
+        gloss_name = "Glossario"
     elif lang == "eng":
         sum_name = "Summary"
         flow_name = "01. Flows overview"
         gl_name = "02.Trades, gains & losses"
         dw_name = "03.Fiat deposits & withdrawals"
+        gloss_name = "Glossary"
 
     with pd.ExcelWriter(file_name, engine='xlsxwriter') as writer:
 
@@ -38,6 +40,8 @@ def report_to_excel(client_name, file_name, lang, db, lifo_view, depo_withdraw_d
             writer, lang, dw_name, depo_withdraw_df)
 
         db_to_excel(writer, '99.Export', db)
+
+        glossary_to_excel(writer, gloss_name, lang)
 
 
 # ----------- single sheets part ---------------
@@ -138,8 +142,6 @@ def summary_view(client_name, lang, writer_obj, sheet_name, funding_df, inv_df, 
 
     # columns width operations
     worksheet.set_column("A:A", 2)
-    worksheet.set_column("C:I", 15)
-    worksheet.set_column("K:K", 15)
     worksheet.set_row(0, 70)
 
 
@@ -209,6 +211,9 @@ def summary_compile(workbook, worksheet, title, subtitle, df, row_start):
                                                       'format': format_negative})
     row_end = index + row_start + 4
 
+    worksheet.set_column(c_, c_, 17)
+    worksheet.set_column(2, c_ - 2, 15)
+
     return row_end
 
 
@@ -224,6 +229,7 @@ def db_to_excel(writer_obj, sheet_name, db):
         pass
     db["Date"] = [str(x) for x in db["Date"]]
     db["Price"] = [float(x) for x in db["Price"]]
+    db["FlowType_Num"] = [int(x) for x in db["FlowType_Num"]]
     db = db.fillna("-")
 
     workbook = writer_obj.book
@@ -249,9 +255,11 @@ def db_to_excel(writer_obj, sheet_name, db):
     worksheet.set_column('B:B', 20)
     worksheet.set_column('D:D', 10, format_number)
     worksheet.set_column('E:E', 35)
+    worksheet.set_column('F:H', 15)
 
-
+# ------------------------
 # ------- Gains and Losses View
+# --------------------------
 
 
 def gain_and_loss_reorder(df):
@@ -259,13 +267,16 @@ def gain_and_loss_reorder(df):
     df = df.drop(columns=["Trade_Num", "Art_Exchange_Rate"])
     res_list = list(set(CRYPTO_LIST_RES).intersection(df.columns))
     df = df.drop(columns=res_list)
+    df = df.rename(columns={'LIFO_avg_cost': "LIFO Avg Cost",
+                            'Exchange_Rate': "Exchange Rate"
+                            })
 
     fiat_list = list(set(FIAT_LIST).intersection(df.columns))
     crypto_list = list(set(CRYPTO_LIST).intersection(df.columns))
     reordered_df_h = ["Exchange", "Date"]
     reordered_df_h.extend(fiat_list)
     reordered_df_h.extend(crypto_list)
-    reordered_df_h.extend(["Exchange_Rate", "LIFO_avg_cost", "Gain/Loss"])
+    reordered_df_h.extend(["Exchange Rate", "LIFO Avg Cost", "Gain/Loss"])
     reordered_df = df[reordered_df_h]
 
     return reordered_df
@@ -276,7 +287,7 @@ def gain_and_loss_to_exc(writer_obj, lang, sheet_name, df, start_row, start_col)
     df = gain_and_loss_reorder(df)
     df["Date"] = [str(x) for x in df["Date"]]
 
-    df = df.fillna("-")
+    df = df.fillna(0.0)
     df.reset_index(drop=True, inplace=True)
 
     workbook = writer_obj.book
@@ -286,6 +297,7 @@ def gain_and_loss_to_exc(writer_obj, lang, sheet_name, df, start_row, start_col)
 
     shape_tuple = df.shape
     df_row = shape_tuple[0]
+    # df_col = shape_tuple[1]
 
     format_word = workbook.add_format(
         FORMAT_DICT.get('lifo_word'))
@@ -311,10 +323,10 @@ def gain_and_loss_to_exc(writer_obj, lang, sheet_name, df, start_row, start_col)
             worksheet.write(5 + index, 1 + i, el, format_border)
             i = i+1
 
-    format_sheet_lifo(workbook, worksheet, start_row, start_row + df_row)
+    format_sheet_lifo(workbook, worksheet, start_row, start_row + df_row, i)
 
 
-def format_sheet_lifo(workbook, worksheet, start_row, last_row):
+def format_sheet_lifo(workbook, worksheet, start_row, last_row, last_col):
 
     format_neg_eur = workbook.add_format(FORMAT_DICT.get('neg_eur'))
     format_pos_eur = workbook.add_format(FORMAT_DICT.get('pos_eur'))
@@ -337,11 +349,14 @@ def format_sheet_lifo(workbook, worksheet, start_row, last_row):
                                                                   'format': format_neutral})
 
     worksheet.set_column('C:C', 20)
-    worksheet.set_column('D:J', None, f_center)
-    worksheet.set_column('H:J', 17)
+    worksheet.set_column(3, last_col-3, None, f_center)
+    worksheet.set_column(3, last_col-3, 13)
+    worksheet.set_column(last_col - 2, last_col, 20)
 
-
+# ----------------------
 # ------- Flows View
+# -----------------------
+
 
 def flows_to_excel(writer_obj, lang, sheet_name, flow_df, currency_list, year_list):
 
@@ -371,7 +386,7 @@ def flows_to_excel(writer_obj, lang, sheet_name, flow_df, currency_list, year_li
     _, last_col = flows_compile(workbook, worksheet, flow_df, currency_list,
                                 year_list, start_row, start_col, typology="crypto")
 
-    worksheet.set_column(last_col, last_col, 15)
+    worksheet.set_column(last_col, last_col, 20)
     worksheet.set_column('B:B', 35)
 
 
@@ -522,13 +537,15 @@ def net_crypto_acq(sub_df, index_name):
 
     return net_acq_row
 
-# ----------
+# --------------------
 # Depo and withdrawal view
+# ---------------------
 
 
 def depo_withdraw_to_excel(writer_obj, lang, sheet_name, df):
 
     df["Date"] = [str(x) for x in df["Date"]]
+    df["Amount"] = [float(x) for x in df["Amount"]]
     df = df.fillna("-")
     df.reset_index(drop=True, inplace=True)
 
@@ -568,13 +585,16 @@ def depo_withdraw_to_excel(writer_obj, lang, sheet_name, df):
     worksheet.set_column("B:B", 35)
     worksheet.set_column("E:E", 20)
     worksheet.set_column('D:D', 17)
-    worksheet.set_column('K:K', 17)
+    worksheet.set_column('H:I', 17)
+    worksheet.set_column('K:K', 20)
+    worksheet.set_column('L:L', 17)
 
-# --------
-# Glossario
+# ------------------
+# --------- Glossario
+# -------------------
 
 
-def glossary(writer_obj, lang, sheet_name):
+def glossary_to_excel(writer_obj, sheet_name, lang):
 
     workbook = writer_obj.book
     worksheet = workbook.add_worksheet(sheet_name)
@@ -588,8 +608,16 @@ def glossary(writer_obj, lang, sheet_name):
     format_border = workbook.add_format(FORMAT_DICT.get('dashed_border'))
     if lang == "ita":
         title = "Glossario"
+        first_head = "Voce"
+        sec_head = "Descrizione"
     elif lang == "eng":
         title = "Glossary"
+        first_head = "Field"
+        sec_head = "Description"
     worksheet.write(2, 1, title, format_word)
+    worksheet.write(4, 1, first_head, format_header)
+    worksheet.write(4, 2, sec_head, format_header)
+    worksheet.set_column('B:B', 35)
+    worksheet.set_column('C:C', 50)
 
     return None
