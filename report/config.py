@@ -1,8 +1,10 @@
 
 FIAT_LIST = ["EUR", "USD"]
 
-CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC", "ZRX",
+CRYPTO_LIST = ["BTC", "ETH", "DOGE", "XRP", "DOG", "BCH", "BSV", "LTC", "ZRX", "ZEC", "EOS", "XMR",
                "BAL", "COMP", "XLM", "NU", "GRT", "MATIC", "FORTH", "AMP", "BOND", "RLY", "CLV"]
+
+EXCHANGE_LIST = ["Coinbase-pro", "Kraken", "Coinbase", "TRT", "Bitstamp"]
 
 CRYPTO_LIST_RES = [
     "BTC_residual",
@@ -18,7 +20,24 @@ CRYPTO_LIST_RES = [
 CRYPTO_FIAT_DICT = {"Crypto": CRYPTO_LIST,
                     "Fiat": FIAT_LIST,
                     }
+# kraken currency dict
+KRAKEN_DICT_CCY = {
+    "XXBT":	"BTC",
+    "ZEUR":	"EUR",
+    "XZEC":	"ZEC",
+    "XETH":	"ETH",
+    "XLTC":	"LTC",
+    "XXRP":	"XRP",
+    "EOS": "EOS",
+    "BCH": "BCH",
+    "XXMR":	"XMR",
+    "XXDG":	"DOG",
+    "XXLM":	"XLM",
+    "BSV": "BSV"
 
+}
+
+# TRT
 TRT_DICT = {
     "ita": {
         "paid_commission": "6 - Pagamento di fee su Exchange",
@@ -37,20 +56,25 @@ FLOW_TYPE_DICT = {
     "ita": {
         "1": "1 - Deposito su Exchange",
         "2": "2 - Acquisto con fiat su Exchange",
+        "2.a": "2 - Aidrop",
+        "2.b": "2 - Deposito P2P",
         "3": "3 - Ottenuto vendendo cryptocurrency",
         "4": "4 - Vendita per fiat su Exchange",
         "5": "5 - Spesa per acquisto cryptocurrency",
         "6": "6 - Pagamento di fee su Exchange",
-        "7": "7 - Prelievo da Exchange"
+        "7": "7 - Prelievo da Exchange",
+        "8": "8 - Giroconti tra Exchange e movimentazioni interne all'Exchange"
     },
     "eng": {
         "1": "1 - Deposited on Exchanges",
         "2": "2 - Bought with fiat on the Exchange",
+        "2.a": "2 - Aidrop",
         "3": "3 - Obtained selling cryptocurrency",
         "4": "4 - Sold for fiat on the Exchange",
         "5": "5 - Spent to buy other cryptocurrency",
         "6": "6 - Paid as fees to Exchanges",
-        "7": "7 - Withdrawn from Exchanges"
+        "7": "7 - Withdrawn from Exchanges",
+        "8": "8 - Giroconto"
     }
 
 }
@@ -167,7 +191,8 @@ FLOW_TYPE_LIST_ENG = [
     "4 - Sold for fiat on the Exchange",
     "5 - Spent to buy cryptocurrency",
     "6 - Paid as fees to Exchanges",
-    "7 - Withdrawn from Exchanges"
+    "7 - Withdrawn from Exchanges",
+    "8 - Giroconto"
 ]
 
 FLOW_TYPE_LIST_ITA = [
@@ -177,7 +202,8 @@ FLOW_TYPE_LIST_ITA = [
     "4 - Vendita per fiat su Exchange",
     "5 - Spesa per acquisto cryptocurrency",
     "6 - Pagamento di fee su Exchange",
-    "7 - Prelievo da Exchange"
+    "7 - Prelievo da Exchange",
+    "8 - Giroconti tra Exchange e movimentazioni interne all'Exchange"
 ]
 
 
@@ -350,5 +376,32 @@ FORMAT_DICT = {
 
     'only_center': {
         'align': 'center'
+    }
+}
+
+
+# ------------
+# glossary
+
+GLOSSARY_DICT = {
+    "ita": {
+        "1": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, che venga depositata o ricevuta sul proprio conto",
+        "2": "Operazione di acquisto effettuata sull'Exchange in cui si acquista una crittovaluta pagando con Fiat",
+        "2.a": "Qualsiasi ammontare di qualsiasi crittovaluta ottenuta a costo nullo dall'Exchange; la voce è rappresentativa, tra le altre, di operazioni di referral, hard fork e promozioni",
+        "3": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, ottenuta liquidando la propria posizione in una determinata crittovaluta",
+        "4": "Operazione di vendita effettuata sull'Exchange in cui si vende una crittovaluta in cambio di Fiat",
+        "5": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, spesa per acquistare una determinata crittovaluta",
+        "6": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, spesa per il pagamento di commissioni relative ad alre operazioni",
+        "7": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, che venga prelevata o inviata dal proprio conto",
+        "8": "Qualsiasi somma, di qualsiasi valuta, sia questa Fiat o Crypto, che venga spostata in diverse sezioni del proprio conto sul medesimo Exchange oppure su un altro Exchange facente capo al medesimo individuo"
+    },
+    "eng": {
+        "1": "1 - Deposited on Exchanges",
+        "2": "2 - Bought with fiat on the Exchange",
+        "3": "3 - Obtained selling cryptocurrency",
+        "4": "4 - Sold for fiat on the Exchange",
+        "5": "5 - Spent to buy other cryptocurrency",
+        "6": "6 - Paid as fees to Exchanges",
+        "7": "7 - Withdrawn from Exchanges"
     }
 }

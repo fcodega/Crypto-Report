@@ -1,5 +1,5 @@
 import io
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 import pandas as pd
@@ -130,3 +130,101 @@ def report_rates(input_db):
     rates = exchange_rates_definition(["USD"], start_date, end_date)
 
     return rates
+
+
+# ---------------
+# cryptowatch api
+# -----------------
+
+def cw_raw_download(
+    currencypair,
+    start_date,
+    periods="86400"
+):
+
+    Pair = currencypair[3:].upper()
+
+    start_date = datetime.strptime(start_date, "%m-%d-%Y")
+
+    # transform date into timestamps
+    start_date = str(int(start_date.replace(tzinfo=timezone.utc).timestamp()))
+    end_date = start_date
+
+    # API settings
+    entrypoint = "https://api.cryptowat.ch/markets/"
+    key = (
+        "coinbase-pro"
+        + "/"
+        + currencypair
+        + "/ohlc?periods="
+        + periods
+        + "&after="
+        + start_date
+        + "&before="
+        + end_date
+    )
+    request_url = entrypoint + key
+    # API call
+    response = get(request_url)
+    response = response.json()
+
+    try:
+
+        for i in range(len(response["result"]["86400"])):
+
+            r = response["result"]["86400"]
+            Exchange = "coinbase-pro"
+            Pair = currencypair
+            Time = r[i][0] - 86400
+            Open = r[i][1]
+            High = r[i][2]
+            Low = r[i][3]
+            Close_Price = r[i][4]
+            Crypto_Volume = r[i][5]
+            Pair_Volume = r[i][6]
+
+            rawdata = {
+                "Exchange": Exchange,
+                "Pair": Pair,
+                "Time": Time,
+                "Low": Low,
+                "High": High,
+                "Open": Open,
+                "Close Price": Close_Price,
+                "Crypto Volume": Crypto_Volume,
+                "Pair Volume": Pair_Volume,
+            }
+
+            rawdata_df = pd.DataFrame.from_dict(rawdata, orient="index")
+            rawdata_df = rawdata_df.transpose()
+
+            # df = df.append(rawdata_df, ignore_index=True)
+
+    except KeyError:
+
+        r = response
+        Exchange = "coinbase-pro"
+        Pair = currencypair
+        Time = 0
+        Open = 0
+        High = 0
+        Low = 0
+        Close_Price = 0
+        Crypto_Volume = 0
+        Pair_Volume = 0
+        rawdata = {
+            "Exchange": Exchange,
+            "Pair": Pair,
+            "Time": Time,
+            "Low": Low,
+            "High": High,
+            "Open": Open,
+            "Close Price": Close_Price,
+            "Crypto Volume": Crypto_Volume,
+            "Pair Volume": Pair_Volume,
+        }
+        rawdata_df = pd.DataFrame.from_dict(rawdata, orient="index")
+        rawdata_df = rawdata_df.transpose()
+        # df = df.append(rawdata_df, ignore_index=True)
+
+    return rawdata_df

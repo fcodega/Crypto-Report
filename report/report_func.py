@@ -9,7 +9,7 @@ from report.config import (CRYPTO_LIST, DEPO_DF_HEADER, FIAT_LIST,
                            TRANSACTION_DF_HEADER)
 from report.db_func import compile_total_db
 from report.excel_func import report_to_excel
-from report.general_func import extend_pivot_header
+from report.general_func import extend_pivot_header, taxation_db
 
 # ##### report launcher ########
 
@@ -24,7 +24,7 @@ def report_launch(client_name, output_name, lang, **kwargs):
     '''
 
     tot_db = compile_total_db(lang, **kwargs)
-
+    
     # gains and losses
     g_view = gains_and_losses_view(tot_db)
 
@@ -71,6 +71,8 @@ def summary_fiat(client_db, typology):
                              (db_fiat.FlowType_Num == f_num_3)]
 
     sub_db.sort_values(by=['Date'], inplace=True, ascending=True)
+    if typology == "investment":
+        sub_db["Price"] = [-x for x in sub_db["Price"]]
 
     grouped = sub_db.groupby(by=["Currency", "Year"]).sum()
     grouped = grouped.reset_index(level=['Currency', 'Year'])
@@ -225,7 +227,13 @@ def double_op_mngm(client_db, trans_df):
                 num = first_amount
                 den = second_amount
 
-        trans_df.loc[trans_df.Trade_Num == t, "Exchange_Rate"] = abs(num/den)
+        exc_rate = abs(num/den)
+        if exc_rate == np.Inf:
+            print("infinity")
+            exc_rate = 0.0
+        else:
+            pass
+        trans_df.loc[trans_df.Trade_Num == t, "Exchange_Rate"] = exc_rate
 
     return trans_df
 
