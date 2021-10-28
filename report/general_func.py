@@ -16,10 +16,16 @@ def taxation_db(input_db):
     max_date = datetime.now()
     min_date = min(db["Date"])
 
+    db["Year"] = [x.year for x in db["Date"]]
     db["Date"] = [datetime.strftime(x, "%Y-%m-%d")
                   for x in db["Date"]]
     time_list = pd.date_range(start=min_date, end=max_date)
     time_df = pd.DataFrame(time_list, columns=["Date"])
+    # creating the list of years
+    time_df["Year"] = [x.year for x in time_df["Date"]]
+    list_of_year = list(np.array(time_df["Year"].unique()))
+    time_df = time_df.drop(columns=["Year"])
+
     time_df["Date"] = [datetime.strftime(x, "%Y-%m-%d")
                        for x in time_df["Date"]]
 
@@ -27,27 +33,28 @@ def taxation_db(input_db):
     new_df = pd.DataFrame(time_list, columns=["Date"])
     conv_df = pd.DataFrame()
 
-    date_to_look = "01-01-" + str(max_date.year)
-    for ccy in list_of_ccy:
-        if ((ccy == "EUR") | (ccy == "USD")):
-            pass
-        else:
-            ccy_pair = ccy.lower() + "eur"
-            # downloading the 01/01/yyyy
-            open_price = np.array(cw_raw_download(
-                ccy_pair, date_to_look)["Open"])[0]
-            ccy_db = db.loc[db.Currency == ccy]
-            grouped = ccy_db.groupby(by=["Date"]).sum()
-            grouped = grouped.cumsum()
-            merged = pd.merge(time_df, grouped, on="Date", how="left")
-            merged = merged.rename(columns={'Price': ccy})
-            merged = merged.fillna(method='bfill')
-            merged = merged.fillna(method='ffill')
-            new_df[ccy] = merged[ccy]
+    for y in list_of_year:
+        date_to_look = "01-01-" + str(y)
+        for ccy in list_of_ccy:
+            if ((ccy == "EUR") | (ccy == "USD")):
+                pass
+            else:
+                ccy_pair = ccy.lower() + "eur"
+                # downloading the 01/01/yyyy
+                open_price = np.array(cw_raw_download(
+                    ccy_pair, date_to_look)["Open"])[0]
+                ccy_db = db.loc[db.Currency == ccy]
+                grouped = ccy_db.groupby(by=["Date"]).sum()
+                grouped = grouped.cumsum()
+                merged = pd.merge(time_df, grouped, on="Date", how="left")
+                merged = merged.rename(columns={'Price': ccy})
+                merged = merged.fillna(method='bfill')
+                merged = merged.fillna(method='ffill')
+                new_df[ccy] = merged[ccy]
 
-            col_name = ccy + "_conv"
-            new_df[col_name] = merged[ccy] * open_price
-            conv_df[col_name] = merged[ccy] * open_price
+                col_name = ccy + "_conv"
+                new_df[col_name] = merged[ccy] * open_price
+                conv_df[col_name] = merged[ccy] * open_price
 
     new_df["Year"] = [x.year for x in new_df["Date"]]
 
